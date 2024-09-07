@@ -3,23 +3,21 @@ const jwt = require("jsonwebtoken");
 
 // Middleware to verify token
 exports.verifyToken = (req, res, next) => {
-  const token = req.header("Authorization")?.split(" ")[1];
-  console.log("Token Received for Verification:", token); // Log token yang diterima
+  const token = req.header("Authorization");
+  console.log("Token Received:", token);
 
-  // Jika token tidak ada
   if (!token) {
     return res.status(401).json({ message: "No token, authorization denied" });
   }
 
   try {
-    // Verifikasi token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded Token:", decoded); // Log token yang sudah ter-decode
+    const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET); // Splitting to remove "Bearer"
     req.user = decoded;
+    console.log("Token Decoded:", decoded);
     next();
   } catch (err) {
-    console.error("Token verification error:", err.message); // Log error jika ada
-    res.status(400).json({ message: "Invalid token" });
+    console.error("Token Invalid:", err);
+    return res.status(400).json({ message: "Invalid token" });
   }
 };
 

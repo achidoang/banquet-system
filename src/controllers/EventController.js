@@ -71,3 +71,26 @@ exports.deleteEvent = async (req, res) => {
     res.status(500).json({ message: "Error deleting event", error });
   }
 };
+
+// Get all events with pagination and sorting
+exports.getEvents = async (req, res) => {
+  const { page = 1, limit = 10, sort = "date", order = "asc" } = req.query;
+
+  try {
+    const events = await Event.find()
+      .sort({ [sort]: order === "asc" ? 1 : -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const totalEvents = await Event.countDocuments();
+
+    res.status(200).json({
+      totalPages: Math.ceil(totalEvents / limit),
+      currentPage: Number(page),
+      totalEvents,
+      events,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving events", error });
+  }
+};

@@ -51,12 +51,90 @@ exports.login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    console.log("Token Generated:", token); // Cetak token di log untuk debugging
+    res.status(200).json({ token });
+  } catch (error) {
+    res.status(500).json({ message: "Error logging in", error });
+  }
+};
 
-    // Kirim token ke client
-    return res.status(200).json({ token });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Internal server error" });
+// Get all users
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving users", error });
+  }
+};
+
+// Get user by ID
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving user", error });
+  }
+};
+
+// Create new user (admin or IT)
+exports.createUser = async (req, res) => {
+  const { username, password, role } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ username, password: hashedPassword, role });
+    await newUser.save();
+
+    res.status(201).json({ message: "User created successfully", newUser });
+  } catch (error) {
+    res.status(500).json({ message: "Error creating user", error });
+  }
+};
+
+// Update user by ID with password hashing
+exports.updateUser = async (req, res) => {
+  try {
+    const { password, ...otherUpdates } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Hash the password if it's provided in the request
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      otherUpdates.password = hashedPassword;
+    }
+
+    // Update the user with the new data
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { ...otherUpdates },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "User updated successfully", updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating user", error });
+  }
+};
+
+// Delete user by ID
+exports.deleteUser = async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser)
+      return res.status(404).json({ message: "User not found" });
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting user", error });
   }
 };
