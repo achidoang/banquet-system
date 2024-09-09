@@ -1,42 +1,41 @@
+// src/components/AddUser.js
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-function Login() {
+function AddUser() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("admin"); // Default role is admin
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleAddUser = async (e) => {
     e.preventDefault();
-    console.log("Attempting login with:", { username, password }); // Logging input data
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:5000/api/auth/login",
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:5000/api/users",
         {
           username,
           password,
+          role,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("Login response:", response); // Logging server response
-      localStorage.setItem("token", response.data.token);
-      alert("Login successful");
+      alert("User added successfully");
       navigate("/dashboard");
     } catch (error) {
-      console.error("Login error:", error); // Logging detailed error information
-      if (error.response) {
-        console.error("Error response data:", error.response.data); // More detailed response data
-        alert(error.response.data.message || "Invalid credentials");
-      } else {
-        alert("Error connecting to the server");
-      }
+      console.error("Error adding user:", error);
+      alert(error.response?.data?.message || "Error adding user");
     }
   };
 
   return (
     <div>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+      <h2>Add User</h2>
+      <form onSubmit={handleAddUser}>
         <div>
           <label>Username</label>
           <input
@@ -55,10 +54,17 @@ function Login() {
             required
           />
         </div>
-        <button type="submit">Login</button>
+        <div>
+          <label>Role</label>
+          <select value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="admin">Admin</option>
+            <option value="it">IT</option>
+          </select>
+        </div>
+        <button type="submit">Add User</button>
       </form>
     </div>
   );
 }
 
-export default Login;
+export default AddUser;

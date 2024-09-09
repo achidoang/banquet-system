@@ -9,21 +9,29 @@ import {
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
+import AddUser from "./components/AddUser";
+import EditUser from "./components/EditUser";
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem("token"); // Periksa apakah token ada di localStorage
+  const isAuthenticated = !!localStorage.getItem("token");
 
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        {/* Protected route */}
         <Route
           path="/dashboard"
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
         />
-        {/* Redirect to login by default */}
+        <Route
+          path="/add-user"
+          element={isAuthenticated ? <AddUser /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/edit-user/:id"
+          element={isAuthenticated ? <EditUser /> : <Navigate to="/login" />}
+        />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
