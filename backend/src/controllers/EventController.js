@@ -1,96 +1,110 @@
 // src/controllers/EventController.js
 const Event = require("../models/Event");
 
-// Create a new event
+// Create Event
 exports.createEvent = async (req, res) => {
-  const { title, date, rundown } = req.body;
-
   try {
-    const newEvent = new Event({
-      title,
-      date,
-      rundown,
-      createdBy: req.user.id, // Add the user ID from JWT token
+    const {
+      ref_no,
+      deposit_received,
+      booking_by,
+      billing_address,
+      start_date,
+      end_date,
+      pax,
+      venue,
+      sales_in_charge,
+      contact_person,
+      list_event,
+      status,
+      note,
+      rundowns,
+      jobdesks,
+    } = req.body;
+
+    // Membuat Event baru dengan Rundowns dan Jobdesks
+    const event = new Event({
+      ref_no,
+      deposit_received,
+      booking_by,
+      billing_address,
+      start_date,
+      end_date,
+      pax,
+      venue,
+      sales_in_charge,
+      contact_person,
+      list_event,
+      status,
+      note,
+      rundowns, // Rundowns diterima dari body request
+      jobdesks, // Jobdesks diterima dari body request
     });
 
-    await newEvent.save();
+    await event.save();
 
-    res.status(201).json({ message: "Event created successfully", newEvent });
+    return res
+      .status(201)
+      .json({ message: "Event created successfully", event });
   } catch (error) {
-    res.status(500).json({ message: "Error creating event", error });
+    console.error("Error creating event:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
-// Get all events
+// Get all Events
 exports.getEvents = async (req, res) => {
   try {
-    const events = await Event.find().populate("createdBy", "username"); // Populate createdBy with user data
+    const events = await Event.find();
     res.status(200).json(events);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching events", error });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch events", error: error.message });
   }
 };
 
-// Update an event
-exports.updateEvent = async (req, res) => {
-  const { eventId } = req.params;
-  const { title, date, rundown } = req.body;
+// Get Single Event by ID
+exports.getEventById = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    res.status(200).json(event);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch event", error: error.message });
+  }
+};
 
+// Update Event
+exports.updateEvent = async (req, res) => {
   try {
     const updatedEvent = await Event.findByIdAndUpdate(
-      eventId,
-      { title, date, rundown },
+      req.params.id,
+      req.body,
       { new: true }
     );
-
-    if (!updatedEvent) {
+    if (!updatedEvent)
       return res.status(404).json({ message: "Event not found" });
-    }
-
-    res
-      .status(200)
-      .json({ message: "Event updated successfully", updatedEvent });
+    res.status(200).json(updatedEvent);
   } catch (error) {
-    res.status(500).json({ message: "Error updating event", error });
+    res
+      .status(500)
+      .json({ message: "Failed to update event", error: error.message });
   }
 };
 
-// Delete an event
+// Delete Event
 exports.deleteEvent = async (req, res) => {
-  const { eventId } = req.params;
-
   try {
-    const deletedEvent = await Event.findByIdAndDelete(eventId);
-
-    if (!deletedEvent) {
+    const deletedEvent = await Event.findByIdAndDelete(req.params.id);
+    if (!deletedEvent)
       return res.status(404).json({ message: "Event not found" });
-    }
-
     res.status(200).json({ message: "Event deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting event", error });
-  }
-};
-
-// Get all events with pagination and sorting
-exports.getEvents = async (req, res) => {
-  const { page = 1, limit = 10, sort = "date", order = "asc" } = req.query;
-
-  try {
-    const events = await Event.find()
-      .sort({ [sort]: order === "asc" ? 1 : -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
-
-    const totalEvents = await Event.countDocuments();
-
-    res.status(200).json({
-      totalPages: Math.ceil(totalEvents / limit),
-      currentPage: Number(page),
-      totalEvents,
-      events,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving events", error });
+    res
+      .status(500)
+      .json({ message: "Failed to delete event", error: error.message });
   }
 };

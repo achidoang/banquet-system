@@ -4,26 +4,31 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function Dashboard() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]); // Digunakan untuk manajemen user
   const [currentUser, setCurrentUser] = useState(null); // Store logged-in user info
   const navigate = useNavigate();
 
+  // Fetch users and current user details
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchCurrentUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/api/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers(response.data);
         const decodedToken = parseJwt(token); // Decode JWT to get current user info
         setCurrentUser(decodedToken);
+
+        // Fetch users only if the current user is IT (role-based access)
+        if (decodedToken.role === "it") {
+          const response = await axios.get("http://localhost:5000/api/users", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setUsers(response.data);
+        }
       } catch (error) {
-        console.error("Error fetching users:", error);
+        console.error("Error fetching users or current user:", error);
       }
     };
 
-    fetchUsers();
+    fetchCurrentUser();
   }, []);
 
   const handleLogout = () => {
@@ -42,7 +47,7 @@ function Dashboard() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDeleteUser = async (id) => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/api/users/${id}`, {
@@ -56,7 +61,7 @@ function Dashboard() {
 
   return (
     <div>
-      <h2>User Management Dashboard</h2>
+      <h2>Dashboard</h2>
       {currentUser && (
         <div>
           <p>
@@ -66,16 +71,62 @@ function Dashboard() {
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}
-      <Link to="/add-user">Add New User</Link>
-      <ul>
-        {users.map((user) => (
-          <li key={user._id}>
-            {user.username} - {user.role}
-            <Link to={`/edit-user/${user._id}`}>Edit</Link>
-            <button onClick={() => handleDelete(user._id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+
+      {/* Display buttons based on role */}
+      <div>
+        {/* IT role sees Manage User, Form, and History */}
+        {currentUser?.role === "it" && (
+          <>
+            <button onClick={() => navigate("/manage-users")}>
+              Manage Users
+            </button>
+            <button onClick={() => navigate("/events/create")}>
+              Create Event
+            </button>
+            <button onClick={() => navigate("/history")}>
+              View Events (History)
+            </button>
+          </>
+        )}
+
+        {/* Admin role sees Form and History */}
+        {currentUser?.role === "admin" && (
+          <>
+            <button onClick={() => navigate("/events/create")}>
+              Create Event
+            </button>
+            <button onClick={() => navigate("/history")}>
+              View Events (History)
+            </button>
+          </>
+        )}
+
+        {/* User role sees only History */}
+        {currentUser?.role === "user" && (
+          <button onClick={() => navigate("/history")}>
+            View Events (History)
+          </button>
+        )}
+      </div>
+
+      {/* IT role sees Manage User section */}
+      {currentUser?.role === "it" && (
+        <div>
+          <h3>Manage Users</h3>
+          <Link to="/add-user">Add New User</Link>
+          <ul>
+            {users.map((user) => (
+              <li key={user._id}>
+                {user.username} - {user.role}
+                <Link to={`/edit-user/${user._id}`}>Edit</Link>
+                <button onClick={() => handleDeleteUser(user._id)}>
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

@@ -61,6 +61,7 @@ function Register() {
           <select value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="admin">Admin</option>
             <option value="it">IT</option>
+            <option value="user">User</option>
           </select>
         </div>
         <button type="submit">Register</button>
