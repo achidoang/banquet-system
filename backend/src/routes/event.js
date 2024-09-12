@@ -44,4 +44,12 @@ router.delete(
   EventController.deleteEvent // Callback function yang valid
 );
 
+// Update event status by id (admin and it roles only)
+router.put(
+  "/:id/status",
+  verifyToken,
+  authorizeRole(["admin", "it"]),
+  EventController.updateEventStatus
+);
+
 module.exports = router;

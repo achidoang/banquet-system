@@ -7,9 +7,10 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // Login.js
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Attempting login with:", { username, password }); // Logging input data
+    console.log("Attempting login with:", { username, password });
     try {
       const response = await axios.post(
         "http://127.0.0.1:5000/api/auth/login",
@@ -20,12 +21,12 @@ function Login() {
       );
       console.log("Login response:", response); // Logging server response
       localStorage.setItem("token", response.data.token);
+      console.log("Token saved to localStorage:", response.data.token); // Log token after storing
       alert("Login successful");
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true }); // Navigasi langsung ke dashboard setelah login sukses
     } catch (error) {
-      console.error("Login error:", error); // Logging detailed error information
+      console.error("Login error:", error);
       if (error.response) {
-        console.error("Error response data:", error.response.data); // More detailed response data
         alert(error.response.data.message || "Invalid credentials");
       } else {
         alert("Error connecting to the server");

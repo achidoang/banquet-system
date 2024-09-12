@@ -47,18 +47,6 @@ function Dashboard() {
     }
   };
 
-  const handleDeleteUser = async (id) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(users.filter((user) => user._id !== id)); // Remove deleted user from state
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    }
-  };
-
   return (
     <div>
       <h2>Dashboard</h2>
@@ -108,25 +96,6 @@ function Dashboard() {
           </button>
         )}
       </div>
-
-      {/* IT role sees Manage User section */}
-      {currentUser?.role === "it" && (
-        <div>
-          <h3>Manage Users</h3>
-          <Link to="/add-user">Add New User</Link>
-          <ul>
-            {users.map((user) => (
-              <li key={user._id}>
-                {user.username} - {user.role}
-                <Link to={`/edit-user/${user._id}`}>Edit</Link>
-                <button onClick={() => handleDeleteUser(user._id)}>
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }
