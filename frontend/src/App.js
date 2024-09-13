@@ -1,5 +1,7 @@
 // src/App.js
 // import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,

@@ -53,7 +53,7 @@ function Dashboard() {
       {currentUser && (
         <div>
           <p>
-            Logged in as: <strong>{currentUser.username}</strong> (
+            Logged in as: <strong>{currentUser.users}</strong> (
             {currentUser.role})
           </p>
           <button onClick={handleLogout}>Logout</button>

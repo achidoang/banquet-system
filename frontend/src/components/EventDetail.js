@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import {
+  Button,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+} from "@mui/material"; // Material-UI components
+import { formatDate, formatTime } from "./utils"; // Util functions
 
 function EventDetail() {
-  const { id } = useParams(); // Get event ID from URL
+  const { id } = useParams();
   const [event, setEvent] = useState(null);
-  const [filteredJobdesks, setFilteredJobdesks] = useState([]); // For jobdesk filtering
-  const [selectedDepartment, setSelectedDepartment] = useState("All"); // Default department filter
+  const [filteredJobdesks, setFilteredJobdesks] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -19,7 +27,7 @@ function EventDetail() {
           }
         );
         setEvent(response.data);
-        setFilteredJobdesks(response.data.jobdesks); // Set default jobdesk to all
+        setFilteredJobdesks(response.data.jobdesks);
       } catch (error) {
         console.error("Error fetching event:", error);
       }
@@ -28,18 +36,16 @@ function EventDetail() {
     fetchEvent();
   }, [id, token]);
 
-  // Handle print
   const handlePrint = () => {
-    window.print(); // Print the current page
+    window.print();
   };
 
-  // Handle department filter
   const handleDepartmentChange = (e) => {
     const department = e.target.value;
     setSelectedDepartment(department);
 
     if (department === "All") {
-      setFilteredJobdesks(event.jobdesks); // Show all jobdesks
+      setFilteredJobdesks(event.jobdesks);
     } else {
       const filtered = event.jobdesks.filter(
         (jobdesk) => jobdesk.department_name === department
@@ -72,61 +78,98 @@ function EventDetail() {
   ];
 
   return (
-    <div>
-      <h2>Event Details</h2>
-      <p>
-        <strong>Ref No:</strong> {event.ref_no}
-      </p>
-      <p>
-        <strong>Booking By:</strong> {event.booking_by}
-      </p>
-      <p>
-        <strong>Pax:</strong> {event.pax}
-      </p>
-      <p>
-        <strong>Venue:</strong> {event.venue}
-      </p>
-      <p>
-        <strong>Status:</strong> {event.status}
-      </p>
-      <p>
-        <strong>Note:</strong> {event.note}
-      </p>
+    <div className="container mt-4">
+      <div className="card">
+        <div className="card-body">
+          <h2>Event Details</h2>
+          <p>
+            <strong>Ref No:</strong> {event.ref_no}
+          </p>
+          <p>
+            <strong>Deposit Received:</strong> {event.deposit_received}
+          </p>
+          <p>
+            <strong>Booking By:</strong> {event.booking_by}
+          </p>
+          <p>
+            <strong>Billing Address:</strong> {event.billing_address}
+          </p>
+          <p>
+            <strong>Start Date:</strong> {formatDate(event.start_date)}
+          </p>
+          <p>
+            <strong>End Date:</strong> {formatDate(event.end_date)}
+          </p>
+          <p>
+            <strong>Pax:</strong> {event.pax}
+          </p>
+          <p>
+            <strong>Venue:</strong> {event.venue}
+          </p>
+          <p>
+            <strong>Sales in Charge:</strong> {event.sales_in_charge}
+          </p>
+          <p>
+            <strong>Contact Person:</strong> {event.contact_person}
+          </p>
+          <p>
+            <strong>List Event:</strong> {event.list_event}
+          </p>
+          <p>
+            <strong>Status:</strong> {event.status}
+          </p>
+          <p>
+            <strong>Note:</strong> {event.note}
+          </p>
 
-      {/* Rundowns Section */}
-      <h3>Rundowns</h3>
-      <ul>
-        {event.rundowns.map((rundown, index) => (
-          <li key={index}>
-            {rundown.rundown_date} - {rundown.time_start} to {rundown.time_end}{" "}
-            : {rundown.event_activity}
-          </li>
-        ))}
-      </ul>
+          <h3>Rundowns</h3>
+          <ul>
+            {event.rundowns.map((rundown, index) => (
+              <li key={index}>
+                {formatDate(rundown.rundown_date)} -{" "}
+                {formatTime(rundown.time_start)} to{" "}
+                {formatTime(rundown.time_end)}: {rundown.event_activity}
+              </li>
+            ))}
+          </ul>
 
-      {/* Jobdesk Filter */}
-      <h3>Jobdesks</h3>
-      <label>Filter by Department:</label>
-      <select value={selectedDepartment} onChange={handleDepartmentChange}>
-        {departments.map((dept, index) => (
-          <option key={index} value={dept}>
-            {dept}
-          </option>
-        ))}
-      </select>
+          {/* Jobdesk Filter */}
+          <h3>Jobdesks</h3>
+          <div className="no-print">
+            <FormControl fullWidth variant="outlined" className="mb-3">
+              <InputLabel>Filter by Department</InputLabel>
+              <Select
+                value={selectedDepartment}
+                onChange={handleDepartmentChange}
+                label="Filter by Department"
+              >
+                {departments.map((dept, index) => (
+                  <MenuItem key={index} value={dept}>
+                    {dept}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
 
-      <ul>
-        {filteredJobdesks.map((jobdesk, index) => (
-          <li key={index}>
-            <strong>{jobdesk.department_name}:</strong> {jobdesk.description} -{" "}
-            <strong>Notes:</strong> {jobdesk.notes}, <strong>In Charge:</strong>{" "}
-            {jobdesk.people_in_charge}
-          </li>
-        ))}
-      </ul>
+          <ul>
+            {filteredJobdesks.map((jobdesk, index) => (
+              <li key={index}>
+                <strong>{jobdesk.department_name}:</strong>{" "}
+                {jobdesk.description} - <strong>Notes:</strong> {jobdesk.notes},{" "}
+                <strong>In Charge:</strong> {jobdesk.people_in_charge}
+              </li>
+            ))}
+          </ul>
 
-      {/* Print Button */}
-      <button onClick={handlePrint}>Print</button>
+          {/* Print Button */}
+          <div className="no-print mt-3">
+            <Button variant="contained" color="primary" onClick={handlePrint}>
+              Print
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
