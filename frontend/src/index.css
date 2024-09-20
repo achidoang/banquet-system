@@ -12,9 +12,23 @@ code {
     monospace;
 }
 
-/* Hides elements with class no-print when printing */
+/* Hanya tampilkan elemen yang diperlukan saat mencetak */
 @media print {
   .no-print {
     display: none;
+  }
+
+  /* Tampilan tabel dan elemen lain saat cetak agar sesuai dengan proporsi A4 */
+  body {
+    width: 21cm;
+    height: 29.7cm;
+    margin: 0;
+  }
+
+  /* Ukuran font untuk tampilan cetak */
+  h4,
+  h5,
+  p {
+    font-size: 12pt;
   }
 }

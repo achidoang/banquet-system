@@ -15,6 +15,10 @@ const rundownSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  venue_rundown: {
+    type: String,
+    required: true,
+  },
   event_activity: {
     type: String,
     required: true,

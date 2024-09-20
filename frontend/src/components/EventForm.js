@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css"; // Quill stylesheet
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -29,7 +31,13 @@ function EventForm() {
   const [listEvent, setListEvent] = useState("");
   const [note, setNote] = useState("");
   const [rundowns, setRundowns] = useState([
-    { rundown_date: "", time_start: "", time_end: "", event_activity: "" },
+    {
+      rundown_date: "",
+      time_start: "",
+      time_end: "",
+      venue_rundown: "",
+      event_activity: "",
+    },
   ]);
   const [jobdesks, setJobdesks] = useState([
     { department_name: "", description: "", notes: "", people_in_charge: "" },
@@ -40,30 +48,54 @@ function EventForm() {
   const token = localStorage.getItem("token");
 
   const departments = [
-    "educator",
+    "Educator",
     "RA class",
-    "shop",
-    "herbal",
-    "outdoor program",
-    "reservasi glamping",
-    "guest agent glamping",
+    "Shop",
+    "Herbal",
+    "Outdoor Program",
+    "Reservasi Glamping",
+    "Guest Agent Glamping",
     "HK",
-    "kitchen",
+    "Kitchen",
     "Bar",
-    "service/banquet",
-    "garden",
-    "ticketing",
-    "security",
-    "atsiri jawa",
-    "it",
-    "engineering",
+    "Service/Banquet",
+    "Garden",
+    "Ticketing",
+    "Security",
+    "Atsiri Jawa",
+    "IT",
+    "Engineering",
+  ];
+
+  const list_venue = [
+    "RA Class",
+    "Amphiteater",
+    "Aromatic Garden",
+    "Parkir Timur",
+    "Aromatik Shop",
+    "Merchandise Shop",
+    "Lobby Utama",
+    "Workshop 1",
+    "Workshop 2",
+    "Rooftop",
+    "Rosemary 3",
+    "Indoor resto",
+    "Outdoor Resto",
+    "Ballroom",
+    "Swimming Pool",
   ];
 
   // Function to add new rundown
   const addRundown = () => {
     setRundowns([
       ...rundowns,
-      { rundown_date: "", time_start: "", time_end: "", event_activity: "" },
+      {
+        rundown_date: "",
+        time_start: "",
+        time_end: "",
+        venue_rundown: "",
+        event_activity: "",
+      },
     ]);
   };
 
@@ -251,7 +283,7 @@ function EventForm() {
                 required
               />
             </Grid>
-            <Grid item xs={12}>
+            {/* <Grid item xs={12}>
               <TextField
                 label="Note"
                 variant="outlined"
@@ -259,7 +291,7 @@ function EventForm() {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
               />
-            </Grid>
+            </Grid> */}
 
             {/* Rundowns Section */}
             <Grid item xs={12}>
@@ -312,7 +344,29 @@ function EventForm() {
                         required
                       />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid item xs={12} sm={4}>
+                      <FormControl fullWidth>
+                        <InputLabel>Venue</InputLabel>
+                        <Select
+                          value={rundown.venue_rundown}
+                          onChange={(e) => {
+                            const updatedRundowns = [...rundowns];
+                            updatedRundowns[index].venue_rundown =
+                              e.target.value;
+                            setJobdesks(updatedRundowns);
+                          }}
+                          required
+                        >
+                          {list_venue.map((ven, i) => (
+                            <MenuItem key={i} value={ven}>
+                              {ven}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={8}>
                       <TextField
                         label="Event Activity"
                         variant="outlined"
@@ -401,7 +455,7 @@ function EventForm() {
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <TextField
+                      {/* <TextField
                         label="Description"
                         variant="outlined"
                         fullWidth
@@ -409,6 +463,16 @@ function EventForm() {
                         onChange={(e) => {
                           const updatedJobdesks = [...jobdesks];
                           updatedJobdesks[index].description = e.target.value;
+                          setJobdesks(updatedJobdesks);
+                        }}
+                        required
+                      /> */}
+
+                      <ReactQuill
+                        value={jobdesk.description}
+                        onChange={(content) => {
+                          const updatedJobdesks = [...jobdesks];
+                          updatedJobdesks[index].description = content;
                           setJobdesks(updatedJobdesks);
                         }}
                         required
@@ -477,7 +541,8 @@ function EventForm() {
             {rundowns.map((rundown, index) => (
               <li key={index}>
                 {rundown.rundown_date} - {rundown.time_start} to{" "}
-                {rundown.time_end}: {rundown.event_activity}
+                {rundown.time_end}: {rundown.venue_rundown}:
+                {rundown.event_activity}
               </li>
             ))}
           </ul>

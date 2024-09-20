@@ -7,14 +7,26 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Grid,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Pagination,
 } from "@mui/material"; // Material-UI components
-import { formatDate, formatTime } from "./utils"; // Util functions
+import { formatDate } from "./utils"; // Util function
 
 function EventDetail() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [filteredJobdesks, setFilteredJobdesks] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [jobdesksPerPage] = useState(50); // Pagination: 5 jobdesks per page
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -54,7 +66,19 @@ function EventDetail() {
     }
   };
 
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
   if (!event) return <div>Loading...</div>;
+
+  // Pagination logic
+  const indexOfLastJobdesk = currentPage * jobdesksPerPage;
+  const indexOfFirstJobdesk = indexOfLastJobdesk - jobdesksPerPage;
+  const currentJobdesks = filteredJobdesks.slice(
+    indexOfFirstJobdesk,
+    indexOfLastJobdesk
+  );
 
   const departments = [
     "All",
@@ -81,60 +105,79 @@ function EventDetail() {
     <div className="container mt-4">
       <div className="card">
         <div className="card-body">
-          <h2>Event Details</h2>
-          <p>
-            <strong>Ref No:</strong> {event.ref_no}
-          </p>
-          <p>
-            <strong>Deposit Received:</strong> {event.deposit_received}
-          </p>
-          <p>
-            <strong>Booking By:</strong> {event.booking_by}
-          </p>
-          <p>
-            <strong>Billing Address:</strong> {event.billing_address}
-          </p>
-          <p>
-            <strong>Start Date:</strong> {formatDate(event.start_date)}
-          </p>
-          <p>
-            <strong>End Date:</strong> {formatDate(event.end_date)}
-          </p>
-          <p>
-            <strong>Pax:</strong> {event.pax}
-          </p>
-          <p>
-            <strong>Venue:</strong> {event.venue}
-          </p>
-          <p>
-            <strong>Sales in Charge:</strong> {event.sales_in_charge}
-          </p>
-          <p>
-            <strong>Contact Person:</strong> {event.contact_person}
-          </p>
-          <p>
-            <strong>List Event:</strong> {event.list_event}
-          </p>
-          <p>
-            <strong>Status:</strong> {event.status}
-          </p>
-          <p>
-            <strong>Note:</strong> {event.note}
-          </p>
+          <Typography variant="h4" component="h2" gutterBottom>
+            Event Details
+          </Typography>
 
-          <h3>Rundowns</h3>
-          <ul>
-            {event.rundowns.map((rundown, index) => (
-              <li key={index}>
-                {formatDate(rundown.rundown_date)} -{" "}
-                {formatTime(rundown.time_start)} to{" "}
-                {formatTime(rundown.time_end)}: {rundown.event_activity}
-              </li>
-            ))}
-          </ul>
+          {/* Grid Layout for Event Info */}
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <Typography variant="body1">
+                <strong>Ref No:</strong> {event.ref_no}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Deposit Received:</strong> {event.deposit_received}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Booking By:</strong> {event.booking_by}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Billing Address:</strong> {event.billing_address}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Start Date:</strong> {formatDate(event.start_date)}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Typography variant="body1">
+                <strong>End Date:</strong> {formatDate(event.end_date)}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Pax:</strong> {event.pax}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Venue:</strong> {event.venue}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Sales in Charge:</strong> {event.sales_in_charge}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Contact Person:</strong> {event.contact_person}
+              </Typography>
+            </Grid>
+          </Grid>
 
-          {/* Jobdesk Filter */}
-          <h3>Jobdesks</h3>
+          {/* Rundown Section */}
+          <Typography variant="h5" component="h3" gutterBottom className="mt-4">
+            Rundowns
+          </Typography>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Time</TableCell>
+                  <TableCell>Activity</TableCell>
+                  <TableCell>Venue</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {event.rundowns.map((rundown, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{formatDate(rundown.rundown_date)}</TableCell>
+                    <TableCell>{`${rundown.time_start} - ${rundown.time_end}`}</TableCell>
+                    <TableCell>{rundown.event_activity}</TableCell>
+                    <TableCell>{rundown.venue_rundown}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Jobdesk Section */}
+          <Typography variant="h5" component="h3" gutterBottom className="mt-4">
+            Jobdesks
+          </Typography>
           <div className="no-print">
             <FormControl fullWidth variant="outlined" className="mb-3">
               <InputLabel>Filter by Department</InputLabel>
@@ -152,15 +195,36 @@ function EventDetail() {
             </FormControl>
           </div>
 
-          <ul>
-            {filteredJobdesks.map((jobdesk, index) => (
-              <li key={index}>
-                <strong>{jobdesk.department_name}:</strong>{" "}
-                {jobdesk.description} - <strong>Notes:</strong> {jobdesk.notes},{" "}
-                <strong>In Charge:</strong> {jobdesk.people_in_charge}
-              </li>
+          <Grid container spacing={2}>
+            {currentJobdesks.map((jobdesk, index) => (
+              <Grid item xs={12} key={index}>
+                <Typography variant="body1">
+                  <strong>Department:</strong> {jobdesk.department_name}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Description:</strong>
+                  {/* Menampilkan rich text description */}
+                  <div
+                    dangerouslySetInnerHTML={{ __html: jobdesk.description }}
+                  ></div>
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Notes:</strong> {jobdesk.notes}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>People in Charge:</strong> {jobdesk.people_in_charge}
+                </Typography>
+                <hr />
+              </Grid>
             ))}
-          </ul>
+          </Grid>
+
+          <Pagination
+            count={Math.ceil(filteredJobdesks.length / jobdesksPerPage)}
+            page={currentPage}
+            onChange={handlePageChange}
+            className="mt-3 no-print"
+          />
 
           {/* Print Button */}
           <div className="no-print mt-3">

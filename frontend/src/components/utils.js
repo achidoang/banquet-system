@@ -1,7 +1,12 @@
 // utils.js
 export const formatDate = (dateString) => {
-  const options = { day: "2-digit", month: "2-digit", year: "numeric" };
-  return new Date(dateString).toLocaleDateString("en-GB", options); // Format dd/mm/yyyy
+  const options = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  };
+  return new Date(dateString).toLocaleDateString("id-ID", options); // Format Sabtu, 14 September 2024
 };
 
 export const formatTime = (timeString) => {

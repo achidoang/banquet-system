@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       rundown_date: { type: DataTypes.DATE, allowNull: false },
       time_start: { type: DataTypes.TIME, allowNull: false },
       time_end: { type: DataTypes.TIME, allowNull: false },
+      venue_rundown: DataTypes.STRING,
       event_activity: DataTypes.STRING,
     },
     {}

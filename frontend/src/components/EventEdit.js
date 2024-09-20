@@ -6,7 +6,7 @@ function EventEdit() {
   const { id } = useParams();
   const [eventData, setEventData] = useState({
     ref_no: "",
-    deposite_received: "",
+    deposit_received: "",
     booking_by: "",
     billing_address: "",
     start_date: "",
@@ -119,7 +119,7 @@ function EventEdit() {
           <label>Deposite Received:</label>
           <input
             type="text"
-            value={eventData.deposite_received}
+            value={eventData.deposit_received}
             onChange={(e) =>
               setEventData({ ...eventData, deposite_received: e.target.value })
             }

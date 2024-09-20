@@ -56,7 +56,9 @@ function Dashboard() {
             Logged in as: <strong>{currentUser.users}</strong> (
             {currentUser.role})
           </p>
-          <button onClick={handleLogout}>Logout</button>
+          <button className="border-shadow" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       )}
 
@@ -65,13 +67,22 @@ function Dashboard() {
         {/* IT role sees Manage User, Form, and History */}
         {currentUser?.role === "it" && (
           <>
-            <button onClick={() => navigate("/manage-users")}>
+            <button
+              className="border-shadow"
+              onClick={() => navigate("/manage-users")}
+            >
               Manage Users
             </button>
-            <button onClick={() => navigate("/events/create")}>
+            <button
+              className="border-shadow"
+              onClick={() => navigate("/events/create")}
+            >
               Create Event
             </button>
-            <button onClick={() => navigate("/history")}>
+            <button
+              className="border-shadow"
+              onClick={() => navigate("/history")}
+            >
               View Events (History)
             </button>
           </>
