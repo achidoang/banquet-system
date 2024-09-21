@@ -42,6 +42,9 @@ const jobdeskSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  image_urls: {
+    type: [String], // Array of image URLs
+  },
 });
 
 // Event Schema

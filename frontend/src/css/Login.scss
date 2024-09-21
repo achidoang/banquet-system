@@ -20,8 +20,8 @@ button {
   font-size: $ruler;
 }
 
-div,
-p {
+div.shadow,
+p.shadow {
   color: $color-shadow;
   text-shadow: 1px 1px 1px $color-white;
 }

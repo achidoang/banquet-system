@@ -2,19 +2,27 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Pagination from "@mui/material/Pagination";
-import { formatDate } from "./utils";
-import "../css/History.css";
 import {
-  TextField,
-  Select,
-  MenuItem,
-  Button,
   Box,
-  InputLabel,
+  Button,
   FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
   Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
   Grow,
+  Grid,
 } from "@mui/material";
+import CustomAlert from "./CustomAlert";
+import { formatDate } from "./utils";
 
 const parseJwt = (token) => {
   try {
@@ -34,12 +42,16 @@ function History() {
     status: "",
     note: "",
   });
-  const [eventsPerPage] = useState(4); // Number of events per page
-  const [sortKey, setSortKey] = useState("start_date"); // Default sorting by start_date
-  const [sortOrder, setSortOrder] = useState("desc"); // Default order descending (newest first)
+  const [eventsPerPage] = useState(7);
+  const [sortKey, setSortKey] = useState("start_date");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [filterStatus, setFilterStatus] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [showUpdateForm, setShowUpdateForm] = useState(false);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null); // Event to be deleted
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false); // Success alert
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -53,7 +65,7 @@ function History() {
         });
         const sortedData = response.data.sort(
           (a, b) => new Date(b.start_date) - new Date(a.start_date)
-        ); // Sort events by newest start_date
+        );
         setEvents(sortedData);
       } catch (error) {
         console.error("Error fetching events:", error);
@@ -63,13 +75,17 @@ function History() {
     fetchEvents();
   }, [token]);
 
-  const deleteEvent = async (id) => {
+  const handleConfirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/events/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setEvents(events.filter((event) => event._id !== id));
-      alert("Event deleted successfully");
+      await axios.delete(
+        `http://localhost:5000/api/events/${eventToDelete._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setEvents(events.filter((event) => event._id !== eventToDelete._id));
+      setShowDeleteSuccess(true); // Show success alert
+      setShowDeleteConfirm(false); // Hide confirm alert
     } catch (error) {
       console.error("Error deleting event:", error);
       alert("Failed to delete event");
@@ -88,10 +104,13 @@ function History() {
       );
       alert("Status updated successfully");
       setShowUpdateForm(false);
-      const response = await axios.get("http://localhost:5000/api/events", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setEvents(response.data);
+      const eventResponse = await axios.get(
+        "http://localhost:5000/api/events",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setEvents(eventResponse.data);
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status");
@@ -108,10 +127,13 @@ function History() {
           ? new Date(a[key]) - new Date(b[key])
           : new Date(b[key]) - new Date(a[key]);
       }
-      if (order === "asc") {
-        return a[key] > b[key] ? 1 : -1;
-      }
-      return a[key] < b[key] ? 1 : -1;
+      return order === "asc"
+        ? a[key] > b[key]
+          ? 1
+          : -1
+        : a[key] < b[key]
+        ? 1
+        : -1;
     });
     setEvents(sortedEvents);
   };
@@ -139,103 +161,144 @@ function History() {
   };
 
   return (
-    <div className="history-container">
-      <h2>Event History</h2>
+    <Box p={3}>
+      <Typography variant="h4" gutterBottom>
+        Event History
+      </Typography>
 
-      <input
-        type="text"
-        placeholder="Search by Ref No, Booking By, Venue"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="search-bar"
-      />
+      <Grid container spacing={2} mb={3}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Search by Ref No, Booking By, Venue"
+            variant="outlined"
+            fullWidth
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth variant="outlined">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              label="Status"
+            >
+              <MenuItem value="All">All</MenuItem>
+              <MenuItem value="pending">Pending</MenuItem>
+              <MenuItem value="process">Process</MenuItem>
+              <MenuItem value="done">Done</MenuItem>
+              <MenuItem value="cancel">Cancel</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
 
-      <select
-        value={filterStatus}
-        onChange={(e) => setFilterStatus(e.target.value)}
-        className="filter-dropdown"
-      >
-        <option value="All">All</option>
-        <option value="pending">Pending</option>
-        <option value="process">Process</option>
-        <option value="done">Done</option>
-        <option value="cancel">Cancel</option>
-      </select>
-
-      <table className="event-table">
-        <thead>
-          <tr>
-            <th onClick={() => handleSort("ref_no")} className="col-1">
-              Ref No
-            </th>
-            <th onClick={() => handleSort("booking_by")} className="col-1">
-              Booking By
-            </th>
-            <th onClick={() => handleSort("start_date")} className="col-2">
-              Start Date
-            </th>
-            <th onClick={() => handleSort("end_date")} className="col-2">
-              End Date
-            </th>
-            <th onClick={() => handleSort("pax")} className="col-1">
-              Pax
-            </th>
-            <th onClick={() => handleSort("status")} className="col-1">
-              Status
-            </th>
-            <th className="col-2">Note</th>
-            <th className="col-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentEvents.map((event) => (
-            <tr key={event._id}>
-              <td>{event.ref_no}</td>
-              <td>{event.booking_by}</td>
-              <td>{formatDate(event.start_date)}</td>
-              <td>{formatDate(event.end_date)}</td>
-              <td>{event.pax}</td>
-              <td>
-                <span className={`status ${event.status}`}>{event.status}</span>
-              </td>
-              <td>{event.note}</td>
-              <td>
-                <button onClick={() => navigate(`/events/${event._id}`)}>
-                  Detail
-                </button>
-                {["it", "admin"].includes(currentUser?.role) && (
-                  <>
-                    <button
-                      onClick={() => navigate(`/events/edit/${event._id}`)}
-                    >
-                      Edit
-                    </button>
-                    <button onClick={() => deleteEvent(event._id)}>
-                      Delete
-                    </button>
-                    <button
-                      onClick={() => {
-                        setStatusUpdate({
-                          id: event._id,
-                          status: "",
-                          note: "",
-                        });
-                        setShowUpdateForm(true);
-                      }}
-                    >
-                      Update Status
-                    </button>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell onClick={() => handleSort("ref_no")}>Ref No</TableCell>
+              <TableCell onClick={() => handleSort("booking_by")}>
+                Booking By
+              </TableCell>
+              <TableCell onClick={() => handleSort("start_date")}>
+                Start Date
+              </TableCell>
+              <TableCell onClick={() => handleSort("end_date")}>
+                End Date
+              </TableCell>
+              <TableCell onClick={() => handleSort("pax")}>Pax</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Note</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {currentEvents.map((event) => (
+              <TableRow key={event._id}>
+                <TableCell>{event.ref_no}</TableCell>
+                <TableCell>{event.booking_by}</TableCell>
+                <TableCell>{formatDate(event.start_date)}</TableCell>
+                <TableCell>{formatDate(event.end_date)}</TableCell>
+                <TableCell>{event.pax}</TableCell>
+                <TableCell>
+                  <Box
+                    component="span"
+                    sx={{
+                      color:
+                        event.status === "pending"
+                          ? "orange"
+                          : event.status === "process"
+                          ? "blue"
+                          : event.status === "done"
+                          ? "green"
+                          : "red",
+                    }}
+                  >
+                    {event.status}
+                  </Box>
+                </TableCell>
+                <TableCell>{event.note}</TableCell>
+                <TableCell>
+                  <Button
+                    className="ms-2"
+                    onClick={() => navigate(`/events/${event._id}`)}
+                    variant="contained"
+                    size="small"
+                  >
+                    Detail
+                  </Button>
+                  {["it", "admin"].includes(currentUser?.role) && (
+                    <>
+                      <Button
+                        onClick={() => navigate(`/events/edit/${event._id}`)}
+                        variant="outlined"
+                        size="small"
+                        style={{ marginLeft: 8 }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setEventToDelete(event); // Set the event to delete
+                          setShowDeleteConfirm(true); // Show confirmation alert
+                        }}
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        style={{ marginLeft: 8 }}
+                      >
+                        Delete
+                      </Button>
+                      <Button
+                        className="mt-2"
+                        onClick={() => {
+                          setStatusUpdate({
+                            id: event._id,
+                            status: "",
+                            note: "",
+                          });
+                          setShowUpdateForm(true);
+                        }}
+                        variant="outlined"
+                        size="small"
+                        style={{ marginLeft: 8 }}
+                      >
+                        Update Status
+                      </Button>
+                    </>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {showUpdateForm && (
         <Grow in={showUpdateForm}>
-          <Box className="update-status-form" mt={3} p={3} boxShadow={3}>
+          <Box mt={3} p={3} boxShadow={3} bgcolor="background.paper">
             <Typography variant="h6" gutterBottom>
               Update Status for Event
             </Typography>
@@ -290,12 +353,34 @@ function History() {
       )}
 
       <Pagination
+        className="text-center"
         count={Math.ceil(searchedEvents.length / eventsPerPage)}
         page={currentPage}
         onChange={handlePageChange}
-        className="pagination"
+        style={{ marginTop: 16 }}
       />
-    </div>
+
+      {/* Delete confirmation alert */}
+      <CustomAlert
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Confirm Delete"
+        message={`Are you sure you want to delete the event "${eventToDelete?.ref_no}"?`}
+        onConfirm={handleConfirmDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+
+      {/* Delete success alert */}
+      <CustomAlert
+        open={showDeleteSuccess}
+        onClose={() => setShowDeleteSuccess(false)}
+        title="Event Deleted"
+        message="The event has been successfully deleted."
+        onConfirm={() => setShowDeleteSuccess(false)}
+        confirmText="OK"
+      />
+    </Box>
   );
 }
 

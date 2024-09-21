@@ -1,22 +1,32 @@
-// src/components/Dashboard.js
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  Typography,
+  Container,
+  Grid,
+  Paper,
+  Box,
+  CircularProgress,
+} from "@mui/material";
+import { Logout, People, Event, History } from "@mui/icons-material";
 
 function Dashboard() {
-  const [users, setUsers] = useState([]); // Digunakan untuk manajemen user
-  const [currentUser, setCurrentUser] = useState(null); // Store logged-in user info
+  const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch users and current user details
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const decodedToken = parseJwt(token); // Decode JWT to get current user info
+        const decodedToken = parseJwt(token);
         setCurrentUser(decodedToken);
 
-        // Fetch users only if the current user is IT (role-based access)
         if (decodedToken.role === "it") {
           const response = await axios.get("http://localhost:5000/api/users", {
             headers: { Authorization: `Bearer ${token}` },
@@ -24,7 +34,9 @@ function Dashboard() {
           setUsers(response.data);
         }
       } catch (error) {
-        console.error("Error fetching users or current user:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false); // Stop loading after data is fetched
       }
     };
 
@@ -32,11 +44,11 @@ function Dashboard() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove token from localStorage
-    navigate("/login"); // Redirect to login page
+    localStorage.removeItem("token");
+    navigate("/login");
+    window.location.reload();
   };
 
-  // Function to decode JWT token
   const parseJwt = (token) => {
     try {
       const base64Url = token.split(".")[1];
@@ -47,66 +59,102 @@ function Dashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <div>
-      <h2>Dashboard</h2>
-      {currentUser && (
-        <div>
-          <p>
-            Logged in as: <strong>{currentUser.users}</strong> (
-            {currentUser.role})
-          </p>
-          <button className="border-shadow" onClick={handleLogout}>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            Dashboard
+          </Typography>
+          {currentUser && (
+            <Typography variant="body1" sx={{ mr: 2 }}>
+              {currentUser.users} ({currentUser.role})
+            </Typography>
+          )}
+          <Button color="inherit" onClick={handleLogout} startIcon={<Logout />}>
             Logout
-          </button>
-        </div>
-      )}
+          </Button>
+        </Toolbar>
+      </AppBar>
 
-      {/* Display buttons based on role */}
-      <div>
-        {/* IT role sees Manage User, Form, and History */}
-        {currentUser?.role === "it" && (
-          <>
-            <button
-              className="border-shadow"
-              onClick={() => navigate("/manage-users")}
-            >
-              Manage Users
-            </button>
-            <button
-              className="border-shadow"
-              onClick={() => navigate("/events/create")}
-            >
-              Create Event
-            </button>
-            <button
-              className="border-shadow"
-              onClick={() => navigate("/history")}
-            >
-              View Events (History)
-            </button>
-          </>
-        )}
+      <Container sx={{ mt: 4 }}>
+        <Grid container spacing={3}>
+          {/* Manage Users Button (for IT role) */}
+          {currentUser?.role === "it" && (
+            <>
+              <Grid item xs={12} sm={6} md={4}>
+                <Paper elevation={3} sx={{ p: 2 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<People />}
+                    onClick={() => navigate("/manage-users")}
+                  >
+                    Manage Users
+                  </Button>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <Paper elevation={3} sx={{ p: 2 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Event />}
+                    onClick={() => navigate("/events/create")}
+                  >
+                    Create Event
+                  </Button>
+                </Paper>
+              </Grid>
+            </>
+          )}
 
-        {/* Admin role sees Form and History */}
-        {currentUser?.role === "admin" && (
-          <>
-            <button onClick={() => navigate("/events/create")}>
-              Create Event
-            </button>
-            <button onClick={() => navigate("/history")}>
-              View Events (History)
-            </button>
-          </>
-        )}
+          {/* Admin role sees Form and History */}
+          {currentUser?.role === "admin" && (
+            <>
+              <Grid item xs={12} sm={6} md={4}>
+                <Paper elevation={3} sx={{ p: 2 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Event />}
+                    onClick={() => navigate("/events/create")}
+                  >
+                    Create Event
+                  </Button>
+                </Paper>
+              </Grid>
+            </>
+          )}
 
-        {/* User role sees only History */}
-        {currentUser?.role === "user" && (
-          <button onClick={() => navigate("/history")}>
-            View Events (History)
-          </button>
-        )}
-      </div>
+          {/* View Events (History) */}
+          <Grid item xs={12} sm={6} md={4}>
+            <Paper elevation={3} sx={{ p: 2 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                startIcon={<History />}
+                onClick={() => navigate("/history")}
+              >
+                View Events (History)
+              </Button>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Container>
     </div>
   );
 }

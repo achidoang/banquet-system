@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import "../css/Detail.css";
 import { useParams } from "react-router-dom";
 import {
   Button,
@@ -19,6 +20,7 @@ import {
   Pagination,
 } from "@mui/material"; // Material-UI components
 import { formatDate } from "./utils"; // Util function
+import "bootstrap/dist/css/bootstrap.min.css"; // Bootstrap for layout
 
 function EventDetail() {
   const { id } = useParams();
@@ -70,7 +72,22 @@ function EventDetail() {
     setCurrentPage(value);
   };
 
+  const groupRundownByDay = (rundowns) => {
+    const grouped = {};
+    rundowns.forEach((rundown) => {
+      const date = formatDate(rundown.rundown_date);
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(rundown);
+    });
+    return grouped;
+  };
+
   if (!event) return <div>Loading...</div>;
+
+  const rundownByDay = groupRundownByDay(event.rundowns);
+  const rundownDays = Object.keys(rundownByDay);
 
   // Pagination logic
   const indexOfLastJobdesk = currentPage * jobdesksPerPage;
@@ -82,98 +99,182 @@ function EventDetail() {
 
   const departments = [
     "All",
-    "educator",
-    "RA class",
-    "shop",
-    "herbal",
-    "outdoor program",
-    "reservasi glamping",
-    "guest agent glamping",
+    "Educator",
+    "RA Class",
+    "Shop",
+    "Herbal",
+    "Outdoor Program",
+    "Reservasi Glamping",
+    "Guest Agent Glamping",
     "HK",
-    "kitchen",
+    "Kitchen",
     "Bar",
-    "service/banquet",
-    "garden",
-    "ticketing",
-    "security",
-    "atsiri jawa",
+    "Service/Banquet",
+    "Garden",
+    "Ticketing",
+    "Security",
+    "Atsiri Jawa",
     "IT",
     "Engineering",
   ];
 
   return (
-    <div className="container mt-4">
+    <div className="container-fluid mt-4">
       <div className="card">
         <div className="card-body">
-          <Typography variant="h4" component="h2" gutterBottom>
-            Event Details
+          <Typography
+            className="text-center mb-3"
+            variant="h5"
+            component="h2"
+            gutterBottom
+          >
+            BANQUET EVENT ORDER
           </Typography>
 
-          {/* Grid Layout for Event Info */}
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
-              <Typography variant="body1">
-                <strong>Ref No:</strong> {event.ref_no}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Deposit Received:</strong> {event.deposit_received}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Booking By:</strong> {event.booking_by}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Billing Address:</strong> {event.billing_address}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Start Date:</strong> {formatDate(event.start_date)}
+              <Typography className="text-start mb-3" variant="body1">
+                <strong>Booked By:</strong> {event.booking_by}
               </Typography>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Typography variant="body1">
-                <strong>End Date:</strong> {formatDate(event.end_date)}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Pax:</strong> {event.pax}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Venue:</strong> {event.venue}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Sales in Charge:</strong> {event.sales_in_charge}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Contact Person:</strong> {event.contact_person}
+              <Typography className="text-end mb-3" variant="body1">
+                <strong>Ref No:</strong> {event.ref_no}
               </Typography>
             </Grid>
           </Grid>
 
-          {/* Rundown Section */}
-          <Typography variant="h5" component="h3" gutterBottom className="mt-4">
-            Rundowns
-          </Typography>
+          {/* Grid Layout for Event Info in 4 columns */}
           <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Time</TableCell>
-                  <TableCell>Activity</TableCell>
-                  <TableCell>Venue</TableCell>
-                </TableRow>
-              </TableHead>
+            <Table size="small">
               <TableBody>
-                {event.rundowns.map((rundown, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{formatDate(rundown.rundown_date)}</TableCell>
-                    <TableCell>{`${rundown.time_start} - ${rundown.time_end}`}</TableCell>
-                    <TableCell>{rundown.event_activity}</TableCell>
-                    <TableCell>{rundown.venue_rundown}</TableCell>
-                  </TableRow>
-                ))}
+                <TableRow>
+                  <TableCell style={{ width: "20%" }} className="border-tebal">
+                    <Typography variant="body1">
+                      <strong>Billing Address:</strong> {event.billing_address}
+                    </Typography>
+                  </TableCell>
+                  <TableCell className="border-tebal" colSpan={2}>
+                    <Typography variant="body1">
+                      <strong>Deposit Received:</strong>{" "}
+                      {event.deposit_received}
+                    </Typography>
+                  </TableCell>
+                  <TableCell className="border-tebal" colSpan={2}>
+                    <Typography variant="body1">
+                      <strong>Contact Person:</strong> {event.contact_person}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="border-tebal" colSpan={3}>
+                    <Typography variant="body1">
+                      <strong>Start Date:</strong>{" "}
+                      {formatDate(event.start_date)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell className="border-tebal" colSpan={2}>
+                    <Typography variant="body1">
+                      <strong>Sales in Charge:</strong> {event.sales_in_charge}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="border-tebal" colSpan={3}>
+                    <Typography variant="body1">
+                      <strong>End Date:</strong> {formatDate(event.end_date)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell className="border-tebal">
+                    <Typography variant="body1">
+                      <strong>Pax:</strong> {event.pax}
+                    </Typography>
+                  </TableCell>
+                  <TableCell
+                    style={{ width: "25%" }}
+                    className="border-tebal"
+                    rowSpan={2}
+                  >
+                    <Typography variant="body1">
+                      <strong>Venue:</strong> {event.venue}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="border-tebal" colSpan={4}>
+                    <Typography variant="body1">
+                      <strong>Event:</strong> {event.list_event}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
 
+          {/* Rundown Section */}
+          <Typography variant="h6" component="h3" gutterBottom className="mt-4">
+            Rundowns
+          </Typography>
+          {rundownDays.map((day, index) => (
+            <div key={index}>
+              <Typography
+                className="fw-semibold"
+                variant="p"
+                gutterBottom
+              >{`Day ${index + 1}: ${day}`}</Typography>
+              <TableContainer component={Paper} className="mb-3">
+                <Table size="small" className="border-tebal">
+                  <TableBody>
+                    <TableRow>
+                      <TableCell
+                        style={{ width: "25%" }}
+                        className="border-tebal text-center"
+                      >
+                        <Typography variant="body1">
+                          <strong>Time</strong>
+                        </Typography>
+                      </TableCell>
+                      <TableCell
+                        style={{ width: "30%" }}
+                        className="border-tebal text-center"
+                      >
+                        <Typography variant="body1">
+                          <strong>Venue</strong>
+                        </Typography>
+                      </TableCell>
+                      <TableCell
+                        className="border-tebal text-center"
+                        colSpan={2}
+                      >
+                        <Typography variant="body1">
+                          <strong>Activity</strong>
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                    {rundownByDay[day].map((rundown, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="border-tebal text-center">
+                          <Typography variant="body1">
+                            {`${rundown.time_start} - ${rundown.time_end}`}
+                          </Typography>
+                        </TableCell>
+                        <TableCell className="border-tebal text-center">
+                          <Typography variant="body1">
+                            {rundown.venue_rundown}
+                          </Typography>
+                        </TableCell>
+                        <TableCell className="border-tebal">
+                          <Typography variant="body1">
+                            {rundown.event_activity}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+          ))}
           {/* Jobdesk Section */}
           <Typography variant="h5" component="h3" gutterBottom className="mt-4">
             Jobdesks
@@ -205,6 +306,7 @@ function EventDetail() {
                   <strong>Description:</strong>
                   {/* Menampilkan rich text description */}
                   <div
+                    className="desc"
                     dangerouslySetInnerHTML={{ __html: jobdesk.description }}
                   ></div>
                 </Typography>

@@ -1,3 +1,4 @@
+// src/models/Jobdesks.js
 module.exports = (sequelize, DataTypes) => {
   const Jobdesk = sequelize.define(
     "Jobdesk",
@@ -7,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       description: DataTypes.TEXT,
       notes: DataTypes.TEXT,
       people_in_charge: DataTypes.STRING,
+      image_urls: DataTypes.STRING,
     },
     {}
   );

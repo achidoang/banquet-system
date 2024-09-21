@@ -3,6 +3,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css"; // Quill stylesheet
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "../css/Form.css";
 import {
   TextField,
   Button,
@@ -14,8 +15,12 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Card,
+  CardContent,
+  CardActions,
 } from "@mui/material"; // Material UI Components
 import "bootstrap/dist/css/bootstrap.min.css"; // Bootstrap for layout
+import { formatDate } from "./utils"; // Util function
 
 function EventForm() {
   const [refNo, setRefNo] = useState("");
@@ -40,7 +45,13 @@ function EventForm() {
     },
   ]);
   const [jobdesks, setJobdesks] = useState([
-    { department_name: "", description: "", notes: "", people_in_charge: "" },
+    {
+      department_name: "",
+      description: "",
+      notes: "",
+      people_in_charge: "",
+      image_urls: "",
+    },
   ]);
 
   const [previewMode, setPreviewMode] = useState(false); // For preview mode
@@ -156,18 +167,61 @@ function EventForm() {
     }
   };
 
+  // Fungsi untuk memvalidasi file
+  const validateFiles = (files) => {
+    for (let file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size should not exceed 5MB.");
+        return false;
+      }
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
+        alert("Only JPG, JPEG, and PNG formats are allowed.");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Fungsi untuk menghandle upload gambar
+  const handleImageUpload = (e, index) => {
+    const files = Array.from(e.target.files);
+    if (!validateFiles(files)) return;
+
+    const updatedJobdesks = [...jobdesks];
+
+    // Batasi hanya 5 gambar
+    if (files.length + (updatedJobdesks[index].images || []).length > 5) {
+      alert("You can only upload up to 5 images per jobdesk.");
+      return;
+    }
+
+    updatedJobdesks[index].images = [
+      ...(updatedJobdesks[index].images || []),
+      ...files,
+    ];
+    setJobdesks(updatedJobdesks);
+  };
+
+  // Fungsi untuk menghandle delete gambar
+  const handleDeleteImage = (jobdeskIndex, imageIndex) => {
+    const updatedJobdesks = [...jobdesks];
+    updatedJobdesks[jobdeskIndex].images.splice(imageIndex, 1);
+    setJobdesks(updatedJobdesks);
+  };
+
   const handleEdit = () => {
     setPreviewMode(false); // Go back to edit mode
   };
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>
+      <Typography className="text-center mt-4" variant="h4" gutterBottom>
         Create Event
       </Typography>
       {!previewMode ? (
         <form onSubmit={handlePreview}>
           <Grid container spacing={3}>
+            {/* Ref No and Deposit */}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Ref No"
@@ -188,9 +242,11 @@ function EventForm() {
                 required
               />
             </Grid>
+
+            {/* Booking Details */}
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Booking By"
+                label="Booked By"
                 variant="outlined"
                 fullWidth
                 value={bookingBy}
@@ -208,6 +264,8 @@ function EventForm() {
                 required
               />
             </Grid>
+
+            {/* Date and Pax */}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Start Date"
@@ -243,6 +301,8 @@ function EventForm() {
                 required
               />
             </Grid>
+
+            {/* Venue, Sales, and Contact */}
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Venue"
@@ -273,6 +333,8 @@ function EventForm() {
                 required
               />
             </Grid>
+
+            {/* List Event */}
             <Grid item xs={12}>
               <TextField
                 label="List Event"
@@ -283,115 +345,110 @@ function EventForm() {
                 required
               />
             </Grid>
-            {/* <Grid item xs={12}>
-              <TextField
-                label="Note"
-                variant="outlined"
-                fullWidth
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
-            </Grid> */}
 
-            {/* Rundowns Section */}
+            {/* Rundowns Section with Card */}
             <Grid item xs={12}>
               <Typography variant="h6">Rundowns</Typography>
               {rundowns.map((rundown, index) => (
-                <Box key={index} mb={2}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Rundown Date"
-                        type="date"
-                        fullWidth
-                        value={rundown.rundown_date}
-                        onChange={(e) => {
-                          const updatedRundowns = [...rundowns];
-                          updatedRundowns[index].rundown_date = e.target.value;
-                          setRundowns(updatedRundowns);
-                        }}
-                        InputLabelProps={{ shrink: true }}
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Time Start"
-                        type="time"
-                        fullWidth
-                        value={rundown.time_start}
-                        onChange={(e) => {
-                          const updatedRundowns = [...rundowns];
-                          updatedRundowns[index].time_start = e.target.value;
-                          setRundowns(updatedRundowns);
-                        }}
-                        InputLabelProps={{ shrink: true }}
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Time End"
-                        type="time"
-                        fullWidth
-                        value={rundown.time_end}
-                        onChange={(e) => {
-                          const updatedRundowns = [...rundowns];
-                          updatedRundowns[index].time_end = e.target.value;
-                          setRundowns(updatedRundowns);
-                        }}
-                        InputLabelProps={{ shrink: true }}
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <FormControl fullWidth>
-                        <InputLabel>Venue</InputLabel>
-                        <Select
-                          value={rundown.venue_rundown}
+                <Card key={index} sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          label="Rundown Date"
+                          type="date"
+                          fullWidth
+                          value={rundown.rundown_date}
                           onChange={(e) => {
                             const updatedRundowns = [...rundowns];
-                            updatedRundowns[index].venue_rundown =
+                            updatedRundowns[index].rundown_date =
                               e.target.value;
-                            setJobdesks(updatedRundowns);
+                            setRundowns(updatedRundowns);
+                          }}
+                          InputLabelProps={{ shrink: true }}
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          label="Time Start"
+                          type="time"
+                          fullWidth
+                          value={rundown.time_start}
+                          onChange={(e) => {
+                            const updatedRundowns = [...rundowns];
+                            updatedRundowns[index].time_start = e.target.value;
+                            setRundowns(updatedRundowns);
+                          }}
+                          InputLabelProps={{ shrink: true }}
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          label="Time End"
+                          type="time"
+                          fullWidth
+                          value={rundown.time_end}
+                          onChange={(e) => {
+                            const updatedRundowns = [...rundowns];
+                            updatedRundowns[index].time_end = e.target.value;
+                            setRundowns(updatedRundowns);
+                          }}
+                          InputLabelProps={{ shrink: true }}
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth>
+                          <InputLabel>Venue</InputLabel>
+                          <Select
+                            value={rundown.venue_rundown}
+                            onChange={(e) => {
+                              const updatedRundowns = [...rundowns];
+                              updatedRundowns[index].venue_rundown =
+                                e.target.value;
+                              setRundowns(updatedRundowns);
+                            }}
+                            required
+                          >
+                            {list_venue.map((ven, i) => (
+                              <MenuItem key={i} value={ven}>
+                                {ven}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={8}>
+                        <TextField
+                          label="Event Activity"
+                          variant="outlined"
+                          fullWidth
+                          value={rundown.event_activity}
+                          onChange={(e) => {
+                            const updatedRundowns = [...rundowns];
+                            updatedRundowns[index].event_activity =
+                              e.target.value;
+                            setRundowns(updatedRundowns);
                           }}
                           required
-                        >
-                          {list_venue.map((ven, i) => (
-                            <MenuItem key={i} value={ven}>
-                              {ven}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                        />
+                      </Grid>
                     </Grid>
-
-                    <Grid item xs={12} sm={8}>
-                      <TextField
-                        label="Event Activity"
+                  </CardContent>
+                  <CardActions>
+                    {index > 0 && (
+                      <Button
                         variant="outlined"
-                        fullWidth
-                        value={rundown.event_activity}
-                        onChange={(e) => {
-                          const updatedRundowns = [...rundowns];
-                          updatedRundowns[index].event_activity =
-                            e.target.value;
-                          setRundowns(updatedRundowns);
-                        }}
-                        required
-                      />
-                    </Grid>
-                  </Grid>
-                  {index > 0 && (
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => removeRundown(index)}
-                    >
-                      Remove Rundown
-                    </Button>
-                  )}
-                </Box>
+                        color="error"
+                        onClick={() => removeRundown(index)}
+                      >
+                        Remove Rundown
+                      </Button>
+                    )}
+                  </CardActions>
+                </Card>
               ))}
               <Button variant="contained" onClick={addRundown}>
                 Add Rundown
@@ -402,163 +459,197 @@ function EventForm() {
             <Grid item xs={12}>
               <Typography variant="h6">Jobdesks</Typography>
               {jobdesks.map((jobdesk, index) => (
-                <Box key={index} mb={2}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                      <FormControl fullWidth>
-                        <InputLabel>Department Name</InputLabel>
-                        <Select
-                          value={jobdesk.department_name}
+                <Card key={index} sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth>
+                          <InputLabel>Department Name</InputLabel>
+                          <Select
+                            value={jobdesk.department_name}
+                            onChange={(e) => {
+                              const updatedJobdesks = [...jobdesks];
+                              updatedJobdesks[index].department_name =
+                                e.target.value;
+                              setJobdesks(updatedJobdesks);
+                            }}
+                            required
+                          >
+                            {departments.map((dept, i) => (
+                              <MenuItem key={i} value={dept}>
+                                {dept}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          label="People In Charge"
+                          fullWidth
+                          value={jobdesk.people_in_charge}
                           onChange={(e) => {
                             const updatedJobdesks = [...jobdesks];
-                            updatedJobdesks[index].department_name =
+                            updatedJobdesks[index].people_in_charge =
                               e.target.value;
                             setJobdesks(updatedJobdesks);
                           }}
                           required
-                        >
-                          {departments.map((dept, i) => (
-                            <MenuItem key={i} value={dept}>
-                              {dept}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          label="Notes"
+                          fullWidth
+                          value={jobdesk.notes}
+                          onChange={(e) => {
+                            const updatedJobdesks = [...jobdesks];
+                            updatedJobdesks[index].notes = e.target.value;
+                            setJobdesks(updatedJobdesks);
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={"12"}>
+                        <ReactQuill
+                          value={jobdesk.description}
+                          onChange={(content) => {
+                            const updatedJobdesks = [...jobdesks];
+                            updatedJobdesks[index].description = content;
+                            setJobdesks(updatedJobdesks);
+                          }}
+                          required
+                        />
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="People In Charge"
+                  </CardContent>
+                  <CardActions>
+                    {index > 0 && (
+                      <Button
                         variant="outlined"
-                        fullWidth
-                        value={jobdesk.people_in_charge}
-                        onChange={(e) => {
-                          const updatedJobdesks = [...jobdesks];
-                          updatedJobdesks[index].people_in_charge =
-                            e.target.value;
-                          setJobdesks(updatedJobdesks);
-                        }}
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        label="Notes"
-                        variant="outlined"
-                        fullWidth
-                        value={jobdesk.notes}
-                        onChange={(e) => {
-                          const updatedJobdesks = [...jobdesks];
-                          updatedJobdesks[index].notes = e.target.value;
-                          setJobdesks(updatedJobdesks);
-                        }}
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      {/* <TextField
-                        label="Description"
-                        variant="outlined"
-                        fullWidth
-                        value={jobdesk.description}
-                        onChange={(e) => {
-                          const updatedJobdesks = [...jobdesks];
-                          updatedJobdesks[index].description = e.target.value;
-                          setJobdesks(updatedJobdesks);
-                        }}
-                        required
-                      /> */}
-
-                      <ReactQuill
-                        value={jobdesk.description}
-                        onChange={(content) => {
-                          const updatedJobdesks = [...jobdesks];
-                          updatedJobdesks[index].description = content;
-                          setJobdesks(updatedJobdesks);
-                        }}
-                        required
-                      />
-                    </Grid>
-                  </Grid>
-                  {index > 0 && (
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => removeJobdesk(index)}
-                    >
-                      Remove Jobdesk
-                    </Button>
-                  )}
-                </Box>
+                        color="error"
+                        onClick={() => removeJobdesk(index)}
+                      >
+                        Remove Jobdesk
+                      </Button>
+                    )}
+                  </CardActions>
+                </Card>
               ))}
               <Button variant="contained" onClick={addJobdesk}>
                 Add Jobdesk
               </Button>
-              <Button variant="contained" color="primary" type="submit">
+            </Grid>
+
+            {/* Submit and Preview Buttons */}
+            <Grid item xs={12} className="text-center">
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                sx={{ mr: 2 }}
+              >
                 Preview
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleSaveToDatabase}
+              >
+                Save Event
               </Button>
             </Grid>
           </Grid>
         </form>
       ) : (
         <div>
-          <Typography variant="h5">Preview Event</Typography>
-          <p>
-            <strong>Ref No:</strong> {refNo}
-          </p>
-          <p>
-            <strong>Deposit Received:</strong> {depositReceived}
-          </p>
-          <p>
-            <strong>Booking By:</strong> {bookingBy}
-          </p>
-          <p>
-            <strong>Start Date:</strong> {startDate}
-          </p>
-          <p>
-            <strong>End Date:</strong> {endDate}
-          </p>
-          <p>
-            <strong>Pax:</strong> {pax}
-          </p>
-          <p>
-            <strong>Sales in Charge:</strong> {salesInCharge}
-          </p>
-          <p>
-            <strong>Contact Person:</strong> {contactPerson}
-          </p>
-          <p>
-            <strong>List Event:</strong> {listEvent}
-          </p>
-          <p>
-            <strong>Venue:</strong> {venue}
-          </p>
-          <p>
-            <strong>Note:</strong> {note}
-          </p>
+          {/* Event preview UI */}
+          <Typography variant="h5" gutterBottom>
+            Preview Event
+          </Typography>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Ref No:</Typography>
+              <Typography>{refNo}</Typography>
 
-          <Typography variant="h6">Rundowns:</Typography>
-          <ul>
-            {rundowns.map((rundown, index) => (
-              <li key={index}>
-                {rundown.rundown_date} - {rundown.time_start} to{" "}
-                {rundown.time_end}: {rundown.venue_rundown}:
-                {rundown.event_activity}
-              </li>
-            ))}
-          </ul>
+              <Typography variant="h6">Booking By:</Typography>
+              <Typography>{bookingBy}</Typography>
 
-          <Typography variant="h6">Jobdesks:</Typography>
-          <ul>
-            {jobdesks.map((jobdesk, index) => (
-              <li key={index}>
-                {jobdesk.department_name}: {jobdesk.description}, Notes:{" "}
-                {jobdesk.notes}, In Charge: {jobdesk.people_in_charge}
-              </li>
-            ))}
-          </ul>
+              <Typography variant="h6">Venue:</Typography>
+              <Typography>{venue}</Typography>
 
-          <Button onClick={handleEdit}>Edit</Button>
-          <Button onClick={handleSaveToDatabase}>Save</Button>
+              <Typography variant="h6">Deposit Reveived:</Typography>
+              <Typography>{depositReceived}</Typography>
+
+              <Typography variant="h6">Start Date:</Typography>
+              <Typography>{formatDate(startDate)}</Typography>
+
+              <Typography variant="h6">End Date:</Typography>
+              <Typography>{formatDate(endDate)}</Typography>
+
+              <Typography variant="h6">Pax:</Typography>
+              <Typography>{pax}</Typography>
+
+              <Typography variant="h6">Sales in Charge:</Typography>
+              <Typography>{salesInCharge}</Typography>
+
+              <Typography variant="h6">Contact Person:</Typography>
+              <Typography>{contactPerson}</Typography>
+
+              <Typography variant="h6">List Event:</Typography>
+              <Typography>{listEvent}</Typography>
+
+              <Typography variant="h6">Sales in Charge:</Typography>
+              <Typography>{salesInCharge}</Typography>
+
+              <Typography variant="h6">Rundowns:</Typography>
+              <ul>
+                {rundowns.map((rundown, index) => (
+                  <li key={index}>
+                    {formatDate(rundown.rundown_date)} || {rundown.time_start} -{" "}
+                    {rundown.time_end} || {rundown.venue_rundown} ||{" "}
+                    {rundown.event_activity}
+                  </li>
+                ))}
+              </ul>
+
+              <Typography variant="h6">Jobdesks:</Typography>
+              <ul>
+                {jobdesks.map((jobdesk, index) => (
+                  <li key={index}>
+                    {jobdesk.department_name}:{" "}
+                    {
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: jobdesk.description,
+                        }}
+                      ></div>
+                    }
+                    Notes: {jobdesk.notes} || People in Charge:{" "}
+                    {jobdesk.people_in_charge}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Tambahkan semua data form lainnya di sini */}
+            </CardContent>
+          </Card>
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setPreviewMode(false)}
+            sx={{ mt: 3 }}
+          >
+            Back to Form
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleSaveToDatabase}
+            sx={{ mt: 3, ml: 2 }}
+          >
+            Save to Database
+          </Button>
         </div>
       )}
     </Container>

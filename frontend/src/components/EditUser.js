@@ -1,13 +1,22 @@
-// src/components/EditUser.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  Container,
+  TextField,
+  Button,
+  Box,
+  Typography,
+  MenuItem,
+  CircularProgress,
+} from "@mui/material";
 
 function EditUser() {
-  const { id } = useParams(); // Get user ID from URL parameters
+  const { id } = useParams();
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState(""); // New password field
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +34,8 @@ function EditUser() {
         setRole(user.role);
       } catch (error) {
         console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -36,10 +47,7 @@ function EditUser() {
     try {
       const token = localStorage.getItem("token");
       const updatedData = { username, role };
-
-      if (password) {
-        updatedData.password = password; // Include password only if it's filled
-      }
+      if (password) updatedData.password = password;
 
       await axios.put(`http://localhost:5000/api/users/${id}`, updatedData, {
         headers: { Authorization: `Bearer ${token}` },
@@ -52,38 +60,61 @@ function EditUser() {
     }
   };
 
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <div>
-      <h2>Edit User</h2>
+    <Container>
+      <Typography variant="h4" sx={{ mb: 4 }}>
+        Edit User
+      </Typography>
       <form onSubmit={handleEditUser}>
-        <div>
-          <label>Username</label>
-          <input
-            type="text"
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            fullWidth
             required
           />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Password"
             type="password"
-            placeholder="Leave blank to keep the same"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            placeholder="Leave blank to keep the same"
           />
-        </div>
-        <div>
-          <label>Role</label>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="admin">Admin</option>
-            <option value="it">IT</option>
-          </select>
-        </div>
-        <button type="submit">Update User</button>
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            select
+            label="Role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            fullWidth
+          >
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="it">IT</MenuItem>
+          </TextField>
+        </Box>
+        <Button type="submit" variant="contained" color="primary">
+          Update User
+        </Button>
       </form>
-    </div>
+    </Container>
   );
 }
 

@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const EventController = require("../controllers/EventController"); // Pastikan controller diimpor dengan benar
 const { verifyToken, authorizeRole } = require("../middleware/auth"); // Perbaiki impor middleware
+const { upload } = require("../middleware/uploadImage"); // Import multer middleware
 
 // Route for creating event (admin and it roles only)
 router.post(
@@ -50,6 +51,15 @@ router.put(
   verifyToken,
   authorizeRole(["admin", "it"]),
   EventController.updateEventStatus
+);
+
+// Route for image upload in jobdesk
+router.post(
+  "/:id/jobdesk/:jobdeskId/images",
+  verifyToken,
+  authorizeRole(["admin", "it"]),
+  upload.array("images", 5), // Upload up to 5 images
+  EventController.uploadImagesToJobdesk
 );
 
 module.exports = router;

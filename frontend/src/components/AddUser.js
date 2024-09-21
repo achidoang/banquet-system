@@ -1,12 +1,19 @@
-// src/components/AddUser.js
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import {
+  Container,
+  TextField,
+  Button,
+  Box,
+  Typography,
+  MenuItem,
+} from "@mui/material";
 
 function AddUser() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin"); // Default role is admin
+  const [role, setRole] = useState("admin");
   const navigate = useNavigate();
 
   const handleAddUser = async (e) => {
@@ -15,14 +22,8 @@ function AddUser() {
       const token = localStorage.getItem("token");
       await axios.post(
         "http://localhost:5000/api/users",
-        {
-          username,
-          password,
-          role,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { username, password, role },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       alert("User added successfully");
       navigate("/dashboard");
@@ -33,38 +34,48 @@ function AddUser() {
   };
 
   return (
-    <div>
-      <h2>Add User</h2>
+    <Container>
+      <Typography variant="h4" sx={{ mb: 4 }}>
+        Add User
+      </Typography>
       <form onSubmit={handleAddUser}>
-        <div>
-          <label>Username</label>
-          <input
-            type="text"
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            fullWidth
             required
           />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            fullWidth
             required
           />
-        </div>
-        <div>
-          <label>Role</label>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="admin">Admin</option>
-            <option value="it">IT</option>
-            <option value="user">user</option>
-          </select>
-        </div>
-        <button type="submit">Add User</button>
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            select
+            label="Role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            fullWidth
+          >
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="it">IT</MenuItem>
+            <MenuItem value="user">User</MenuItem>
+          </TextField>
+        </Box>
+        <Button type="submit" variant="contained" color="primary">
+          Add User
+        </Button>
       </form>
-    </div>
+    </Container>
   );
 }
 

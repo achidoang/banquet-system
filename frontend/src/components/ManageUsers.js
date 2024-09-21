@@ -1,10 +1,26 @@
-// src/components/ManageUsers.js
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import {
+  Container,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  CircularProgress,
+  Box,
+  Typography,
+  Grid,
+} from "@mui/material";
+import { Add, Edit, Delete } from "@mui/icons-material";
 
 function ManageUsers() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -16,6 +32,8 @@ function ManageUsers() {
         setUsers(response.data);
       } catch (error) {
         console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false); // Stop loading spinner
       }
     };
 
@@ -34,20 +52,78 @@ function ManageUsers() {
     }
   };
 
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <div>
-      <h2>Manage Users</h2>
-      <Link to="/add-user">Add New User</Link>
-      <ul>
-        {users.map((user) => (
-          <li key={user._id}>
-            {user.username} - {user.role}
-            <Link to={`/edit-user/${user._id}`}>Edit</Link>
-            <button onClick={() => handleDeleteUser(user._id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Container>
+      <Grid
+        container
+        className="mt-4"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 3 }}
+      >
+        <Typography variant="h4">Manage Users</Typography>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          component={Link}
+          to="/add-user"
+        >
+          Add New User
+        </Button>
+      </Grid>
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Username</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell align="center">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user._id}>
+                <TableCell>{user.username}</TableCell>
+                <TableCell>{user.role}</TableCell>
+                <TableCell align="center">
+                  <Button
+                    variant="outlined"
+                    startIcon={<Edit />}
+                    component={Link}
+                    to={`/edit-user/${user._id}`}
+                    sx={{ mr: 1 }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<Delete />}
+                    onClick={() => handleDeleteUser(user._id)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Container>
   );
 }
 

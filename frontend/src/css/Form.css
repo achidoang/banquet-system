@@ -1,0 +1,14 @@
+.image-preview {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 10px;
+}
+
+.thumbnail {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
