@@ -1,29 +1,40 @@
 // src/middleware/uploadImage.js
-
 const multer = require("multer");
-const sharp = require("sharp");
 const path = require("path");
+const fs = require("fs");
 
-// Multer configuration (limit 5MB, only JPG, JPEG, PNG)
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (ext !== ".jpg" && ext !== ".jpeg" && ext !== ".png") {
-      return cb(new Error("Only JPG, JPEG, and PNG images are allowed!"));
+// Setup multer storage configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "..", "uploads");
+
+    // Check if the uploads folder exists, if not, create it
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
     }
-    cb(null, true);
+
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
-// Sharp for resizing and compressing images
-const processImage = async (buffer) => {
-  return await sharp(buffer)
-    .resize({ width: 1000 }) // Max width of 1000px
-    .toFormat("jpeg", { quality: 80 }) // Convert to JPEG with 80% quality
-    .toBuffer();
+// Filter to accept only JPG, JPEG, PNG formats
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Invalid file type. Only JPEG, PNG, and JPG are allowed."));
+  }
 };
 
-module.exports = { upload, processImage };
+// Limit file size to 5MB
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
+
+module.exports = { upload };

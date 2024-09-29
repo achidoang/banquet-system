@@ -1,3 +1,4 @@
+// frontend/src/components/EventForm.js
 import React, { useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css"; // Quill stylesheet
@@ -50,13 +51,59 @@ function EventForm() {
       description: "",
       notes: "",
       people_in_charge: "",
-      image_urls: "",
+      image_urls: [],
     },
   ]);
 
   const [previewMode, setPreviewMode] = useState(false); // For preview mode
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
+  // Validasi ukuran dan format gambar
+  const validateFiles = (files) => {
+    for (let file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size should not exceed 5MB.");
+        return false;
+      }
+      if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+        alert("Only JPG, JPEG, and PNG formats are allowed.");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Handle image upload and preview
+  const handleImageUpload = (e, index) => {
+    const files = Array.from(e.target.files);
+    if (!validateFiles(files)) return;
+
+    const updatedJobdesks = [...jobdesks];
+    const currentImages = updatedJobdesks[index].image_urls || [];
+
+    // Validate number of images (max 5)
+    if (files.length + currentImages.length > 5) {
+      alert("You can only upload up to 5 images per jobdesk.");
+      return;
+    }
+
+    // Generate preview URLs for images
+    const previewImages = files.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+
+    updatedJobdesks[index].image_urls = [...currentImages, ...previewImages];
+    setJobdesks(updatedJobdesks);
+  };
+
+  // Handle deleting an image from the preview
+  const handleDeleteImage = (jobdeskIndex, imageIndex) => {
+    const updatedJobdesks = [...jobdesks];
+    updatedJobdesks[jobdeskIndex].image_urls.splice(imageIndex, 1);
+    setJobdesks(updatedJobdesks);
+  };
 
   const departments = [
     "Educator",
@@ -136,8 +183,14 @@ function EventForm() {
     setPreviewMode(true); // Activate preview mode
   };
 
-  const handleSaveToDatabase = async () => {
+  // Handle form submission
+  const handleSaveToDatabase = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+
     const eventData = {
+      // Add your event form fields here
       ref_no: refNo,
       deposit_received: depositReceived,
       booking_by: bookingBy,
@@ -152,61 +205,37 @@ function EventForm() {
       status: "pending", // Default status
       note: note,
       rundowns: rundowns,
-      jobdesks: jobdesks,
+      jobdesks: JSON.stringify(
+        jobdesks.map((jobdesk) => ({
+          ...jobdesk,
+          image_urls: undefined, // Remove the preview URLs
+        }))
+      ),
     };
+
+    // Append form data
+    formData.append("eventData", JSON.stringify(eventData));
+
+    // Append images
+    jobdesks.forEach((jobdesk, index) => {
+      jobdesk.image_urls.forEach((image, i) => {
+        formData.append("images", image.file);
+      });
+    });
 
     try {
       await axios.post("http://localhost:5000/api/events", eventData, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
       alert("Event created successfully");
-      navigate("/history"); // Redirect to history after successful creation
+      navigate("/history");
     } catch (error) {
       console.error("Error creating event:", error);
       alert("Error creating event");
     }
-  };
-
-  // Fungsi untuk memvalidasi file
-  const validateFiles = (files) => {
-    for (let file of files) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File size should not exceed 5MB.");
-        return false;
-      }
-      if (!["image/jpeg", "image/png"].includes(file.type)) {
-        alert("Only JPG, JPEG, and PNG formats are allowed.");
-        return false;
-      }
-    }
-    return true;
-  };
-
-  // Fungsi untuk menghandle upload gambar
-  const handleImageUpload = (e, index) => {
-    const files = Array.from(e.target.files);
-    if (!validateFiles(files)) return;
-
-    const updatedJobdesks = [...jobdesks];
-
-    // Batasi hanya 5 gambar
-    if (files.length + (updatedJobdesks[index].images || []).length > 5) {
-      alert("You can only upload up to 5 images per jobdesk.");
-      return;
-    }
-
-    updatedJobdesks[index].images = [
-      ...(updatedJobdesks[index].images || []),
-      ...files,
-    ];
-    setJobdesks(updatedJobdesks);
-  };
-
-  // Fungsi untuk menghandle delete gambar
-  const handleDeleteImage = (jobdeskIndex, imageIndex) => {
-    const updatedJobdesks = [...jobdesks];
-    updatedJobdesks[jobdeskIndex].images.splice(imageIndex, 1);
-    setJobdesks(updatedJobdesks);
   };
 
   const handleEdit = () => {
@@ -519,6 +548,51 @@ function EventForm() {
                           }}
                           required
                         />
+                      </Grid>
+
+                      {/* Image Upload Section */}
+                      <Grid item xs={12}>
+                        <Typography variant="subtitle1">
+                          Upload Images
+                        </Typography>
+                        <input
+                          type="file"
+                          accept="image/jpeg, image/png, image/jpg"
+                          multiple
+                          onChange={(e) => handleImageUpload(e, index)}
+                        />
+                        <Box mt={2} display="flex" flexWrap="wrap" gap={2}>
+                          {jobdesk.image_urls.map((image, imgIndex) => (
+                            <Box key={imgIndex} position="relative">
+                              <img
+                                src={image.url}
+                                alt={`Preview ${imgIndex}`}
+                                width={100}
+                                height={100}
+                                style={{
+                                  objectFit: "cover",
+                                  borderRadius: "8px",
+                                }}
+                              />
+                              <Button
+                                variant="contained"
+                                color="error"
+                                size="small"
+                                onClick={() =>
+                                  handleDeleteImage(index, imgIndex)
+                                }
+                                style={{
+                                  position: "absolute",
+                                  top: 0,
+                                  right: 0,
+                                  transform: "translate(50%, -50%)",
+                                }}
+                              >
+                                X
+                              </Button>
+                            </Box>
+                          ))}
+                        </Box>
                       </Grid>
                     </Grid>
                   </CardContent>

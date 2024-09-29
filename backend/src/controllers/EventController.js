@@ -23,6 +23,20 @@ exports.createEvent = async (req, res) => {
       jobdesks,
     } = req.body;
 
+    // Parse jobdesk jika dikirim dalam bentuk string (misalnya via form-data)
+    const parsedJobdesks = JSON.parse(jobdesks);
+
+    // Ambil path dari gambar yang diupload
+    const imagePaths = req.files.map((file) => file.path);
+
+    // Tambahkan image URLs ke jobdesk
+    const jobdesksWithImages = parsedJobdesks.map((jobdesk, index) => {
+      return {
+        ...jobdesk,
+        image_urls: imagePaths, // Tambahkan gambar ke setiap jobdesk
+      };
+    });
+
     // Membuat Event baru dengan Rundowns dan Jobdesks
     const event = new Event({
       ref_no,
@@ -39,7 +53,7 @@ exports.createEvent = async (req, res) => {
       status,
       note,
       rundowns, // Rundowns diterima dari body request
-      jobdesks, // Jobdesks diterima dari body request
+      jobdesks: jobdesksWithImages, // Jobdesk dengan image_urls
     });
 
     await event.save();
@@ -128,38 +142,5 @@ exports.updateEventStatus = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error updating status", error: error.message });
-  }
-};
-
-// Upload Images to Jobdesk
-exports.uploadImagesToJobdesk = async (req, res) => {
-  try {
-    const { id, jobdeskId } = req.params;
-    const event = await Event.findById(id);
-
-    if (!event) return res.status(404).json({ message: "Event not found" });
-
-    const jobdesk = event.jobdesks.id(jobdeskId);
-    if (!jobdesk) return res.status(404).json({ message: "Jobdesk not found" });
-
-    const processedImages = await Promise.all(
-      req.files.map(async (file) => {
-        const imageBuffer = await processImage(file.buffer);
-        const imageUrl = `/uploads/jobdesk_images/${Date.now()}-${
-          file.originalname
-        }`;
-        await sharp(imageBuffer).toFile(`./public${imageUrl}`); // Save to /public/uploads
-        return imageUrl;
-      })
-    );
-
-    // Add image URLs to the jobdesk
-    jobdesk.image_urls = [...(jobdesk.image_urls || []), ...processedImages];
-    await event.save();
-
-    res.status(200).json({ message: "Images uploaded successfully", jobdesk });
-  } catch (error) {
-    console.error("Error uploading images:", error);
-    res.status(500).json({ message: "Server error" });
   }
 };

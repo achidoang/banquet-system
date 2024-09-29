@@ -10,6 +10,7 @@ router.post(
   "/",
   verifyToken, // Middleware autentikasi untuk memverifikasi JWT
   authorizeRole(["admin", "it"]), // Middleware untuk memverifikasi role admin dan it
+  upload.array("images", 5), // Middleware multer untuk upload max 5 gambar
   EventController.createEvent // Callback function yang valid
 );
 
@@ -51,15 +52,6 @@ router.put(
   verifyToken,
   authorizeRole(["admin", "it"]),
   EventController.updateEventStatus
-);
-
-// Route for image upload in jobdesk
-router.post(
-  "/:id/jobdesk/:jobdeskId/images",
-  verifyToken,
-  authorizeRole(["admin", "it"]),
-  upload.array("images", 5), // Upload up to 5 images
-  EventController.uploadImagesToJobdesk
 );
 
 module.exports = router;
