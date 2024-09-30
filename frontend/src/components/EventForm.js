@@ -167,14 +167,19 @@ function EventForm() {
   const addJobdesk = () => {
     setJobdesks([
       ...jobdesks,
-      { department_name: "", description: "", notes: "", people_in_charge: "" },
+      {
+        department_name: "",
+        description: "",
+        notes: "",
+        people_in_charge: "",
+        image_urls: [],
+      },
     ]);
   };
 
   // Function to remove jobdesk
   const removeJobdesk = (index) => {
-    const updatedJobdesks = jobdesks.filter((_, i) => i !== index);
-    setJobdesks(updatedJobdesks);
+    setJobdesks((prevJobdesks) => prevJobdesks.filter((_, i) => i !== index));
   };
 
   // Function to handle form submission
@@ -189,42 +194,69 @@ function EventForm() {
 
     const formData = new FormData();
 
-    const eventData = {
-      // Add your event form fields here
-      ref_no: refNo,
-      deposit_received: depositReceived,
-      booking_by: bookingBy,
-      billing_address: billingAddress,
-      start_date: startDate,
-      end_date: endDate,
-      pax: pax,
-      venue: venue,
-      sales_in_charge: salesInCharge,
-      contact_person: contactPerson,
-      list_event: listEvent,
-      status: "pending", // Default status
-      note: note,
-      rundowns: rundowns,
-      jobdesks: JSON.stringify(
+    // const eventData = {
+    //   // Add your event form fields here
+    //   ref_no: refNo,
+    //   deposit_received: depositReceived,
+    //   booking_by: bookingBy,
+    //   billing_address: billingAddress,
+    //   start_date: startDate,
+    //   end_date: endDate,
+    //   pax: pax,
+    //   venue: venue,
+    //   sales_in_charge: salesInCharge,
+    //   contact_person: contactPerson,
+    //   list_event: listEvent,
+    //   status: "pending", // Default status
+    //   note: note,
+    //   rundowns: rundowns,
+    //   jobdesks: JSON.stringify(
+    //     jobdesks.map((jobdesk) => ({
+    //       ...jobdesk,
+    //       image_urls: undefined, // Remove the preview URLs
+    //     }))
+    //   ),
+    // };
+
+    // Tambahkan semua field event ke FormData satu per satu
+    formData.append("ref_no", refNo);
+    formData.append("deposit_received", depositReceived);
+    formData.append("booking_by", bookingBy);
+    formData.append("billing_address", billingAddress);
+    formData.append("start_date", startDate);
+    formData.append("end_date", endDate);
+    formData.append("pax", pax);
+    formData.append("venue", venue);
+    formData.append("sales_in_charge", salesInCharge);
+    formData.append("contact_person", contactPerson);
+    formData.append("list_event", listEvent);
+    formData.append("status", "pending");
+    formData.append("note", note);
+
+    // Convert rundown dan jobdesk ke JSON dan tambahkan ke form-data
+    formData.append("rundowns", JSON.stringify(rundowns));
+    formData.append(
+      "jobdesks",
+      JSON.stringify(
         jobdesks.map((jobdesk) => ({
-          ...jobdesk,
-          image_urls: undefined, // Remove the preview URLs
+          department_name: jobdesk.department_name,
+          description: jobdesk.description,
+          notes: jobdesk.notes,
+          people_in_charge: jobdesk.people_in_charge,
+          image_urls: [], // Image URLs akan di-handle secara terpisah
         }))
-      ),
-    };
+      )
+    );
 
-    // Append form data
-    formData.append("eventData", JSON.stringify(eventData));
-
-    // Append images
+    // Append file gambar yang di-upload ke FormData
     jobdesks.forEach((jobdesk, index) => {
-      jobdesk.image_urls.forEach((image, i) => {
-        formData.append("images", image.file);
+      jobdesk.image_urls.forEach((image) => {
+        formData.append("images", image.file); // Menambahkan file asli ke form-data
       });
     });
 
     try {
-      await axios.post("http://localhost:5000/api/events", eventData, {
+      await axios.post("http://localhost:5000/api/events", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,

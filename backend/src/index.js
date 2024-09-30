@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const authRoutes = require("./routes/auth");
+const path = require("path");
 const eventRoutes = require("./routes/event");
 const userRoutes = require("./routes/user");
 const cors = require("cors");
@@ -17,6 +18,9 @@ const app = express();
 
 // Middleware
 app.use(express.json()); // To parse JSON body requests
+
+// Serve static files from the 'uploads' directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Connect to MongoDB
 mongoose

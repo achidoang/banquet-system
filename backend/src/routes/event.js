@@ -11,6 +11,7 @@ router.post(
   verifyToken, // Middleware autentikasi untuk memverifikasi JWT
   authorizeRole(["admin", "it"]), // Middleware untuk memverifikasi role admin dan it
   upload.array("images", 5), // Middleware multer untuk upload max 5 gambar
+  // compressImage,
   EventController.createEvent // Callback function yang valid
 );
 

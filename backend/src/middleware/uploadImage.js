@@ -2,6 +2,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const express = require("express");
 
 // Setup multer storage configuration
 const storage = multer.diskStorage({
@@ -36,5 +37,10 @@ const upload = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
+
+// Middleware to serve uploads folder (optional, if you want to do it here)
+const serveUploads = (app) => {
+  app.use("/uploads", express.static(path.join(__dirname, "..", "uploads"))); // Perbaiki path ini
+};
 
 module.exports = { upload };

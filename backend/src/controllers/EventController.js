@@ -23,17 +23,18 @@ exports.createEvent = async (req, res) => {
       jobdesks,
     } = req.body;
 
-    // Parse jobdesk jika dikirim dalam bentuk string (misalnya via form-data)
+    // Parse jobdesks dan rundowns jika dikirim dalam bentuk string (misalnya via form-data)
     const parsedJobdesks = JSON.parse(jobdesks);
+    const parsedRundowns = JSON.parse(rundowns); // Tambahkan parsing untuk rundowns
 
     // Ambil path dari gambar yang diupload
-    const imagePaths = req.files.map((file) => file.path);
+    const imagePaths = req.files.map((file) => `/uploads/${file.filename}`); // Simpan relative path
 
     // Tambahkan image URLs ke jobdesk
-    const jobdesksWithImages = parsedJobdesks.map((jobdesk, index) => {
+    const jobdesksWithImages = parsedJobdesks.map((jobdesk) => {
       return {
         ...jobdesk,
-        image_urls: imagePaths, // Tambahkan gambar ke setiap jobdesk
+        image_urls: imagePaths, // Tambahkan relative URL ke setiap jobdesk
       };
     });
 
@@ -52,8 +53,8 @@ exports.createEvent = async (req, res) => {
       list_event,
       status,
       note,
-      rundowns, // Rundowns diterima dari body request
-      jobdesks: jobdesksWithImages, // Jobdesk dengan image_urls
+      rundowns: parsedRundowns, // Rundowns yang sudah diparse
+      jobdesks: jobdesksWithImages, // Jobdesk dengan relative image URLs
     });
 
     await event.save();
@@ -63,7 +64,9 @@ exports.createEvent = async (req, res) => {
       .json({ message: "Event created successfully", event });
   } catch (error) {
     console.error("Error creating event:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 

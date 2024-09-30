@@ -316,6 +316,41 @@ function EventDetail() {
                 <Typography variant="body1">
                   <strong>People in Charge:</strong> {jobdesk.people_in_charge}
                 </Typography>
+                {/* Menampilkan gambar */}
+                {jobdesk.image_urls && jobdesk.image_urls.length > 0 && (
+                  <div className="jobdesk-images">
+                    <Typography variant="body1">
+                      <strong>Images:</strong>
+                    </Typography>
+                    {jobdesk.image_urls.map((imageUrl, idx) => (
+                      <img
+                        key={idx}
+                        src={`http://localhost:5000${imageUrl}`} // Gunakan imageUrl langsung tanpa split
+                        alt={`jobdesk-image-${idx}`}
+                        style={{ maxWidth: "200px", marginRight: "10px" }}
+                      />
+                    ))}
+                  </div>
+                )}
+                {/* 
+                {jobdesk.image_urls && jobdesk.image_urls.length > 0 && (
+                  <div className="jobdesk-images">
+                    <Typography variant="body1">
+                      <strong>Images:</strong>
+                    </Typography>
+                    {jobdesk.image_urls.map((imageUrl, idx) => (
+                      <img
+                        key={idx}
+                        src={`http://localhost:5000/uploads/${imageUrl
+                          .split("\\")
+                          .pop()}`}
+                        alt={`jobdesk-image-${idx}`}
+                        style={{ maxWidth: "200px", marginRight: "10px" }}
+                      />
+                    ))}
+                  </div>
+                )} */}
+
                 <hr />
               </Grid>
             ))}
