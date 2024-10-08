@@ -18,9 +18,18 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Grow,
   Grid,
+  Snackbar,
+  Alert,
+  IconButton,
+  Grow,
+  Card,
+  CardContent,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import UpdateIcon from "@mui/icons-material/Update";
 import CustomAlert from "./CustomAlert";
 import { formatDate } from "./utils";
 
@@ -34,28 +43,28 @@ const parseJwt = (token) => {
   }
 };
 
-function History() {
+const History = () => {
   const [events, setEvents] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusUpdate, setStatusUpdate] = useState({
-    id: "",
-    status: "",
-    note: "",
-  });
   const [eventsPerPage] = useState(7);
   const [sortKey, setSortKey] = useState("start_date");
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterStatus, setFilterStatus] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
-
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [eventToDelete, setEventToDelete] = useState(null); // Event to be deleted
-  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false); // Success alert
+  const [eventToDelete, setEventToDelete] = useState(null);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+  const [showUpdateStatusSuccess, setShowUpdateStatusSuccess] = useState(false);
+  const [statusUpdate, setStatusUpdate] = useState({
+    id: "",
+    status: "",
+    note: "",
+  });
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const currentUser = parseJwt(token);
+  const currentUser = parseJwt(token); // Parsing JWT to get current user role
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -63,10 +72,7 @@ function History() {
         const response = await axios.get("http://localhost:5000/api/events", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const sortedData = response.data.sort(
-          (a, b) => new Date(b.start_date) - new Date(a.start_date)
-        );
-        setEvents(sortedData);
+        setEvents(response.data);
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -88,7 +94,6 @@ function History() {
       setShowDeleteConfirm(false); // Hide confirm alert
     } catch (error) {
       console.error("Error deleting event:", error);
-      alert("Failed to delete event");
     }
   };
 
@@ -102,7 +107,6 @@ function History() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert("Status updated successfully");
       setShowUpdateForm(false);
       const eventResponse = await axios.get(
         "http://localhost:5000/api/events",
@@ -111,6 +115,7 @@ function History() {
         }
       );
       setEvents(eventResponse.data);
+      setShowUpdateStatusSuccess(true);
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status");
@@ -162,9 +167,17 @@ function History() {
 
   return (
     <Box p={3}>
-      <Typography variant="h4" gutterBottom>
-        Event History
-      </Typography>
+      {/* Header with Card */}
+      <Card elevation={3} sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="h4" gutterBottom>
+            History
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            Daftar event
+          </Typography>
+        </CardContent>
+      </Card>
 
       <Grid container spacing={2} mb={3}>
         <Grid item xs={12} sm={6}>
@@ -186,6 +199,7 @@ function History() {
             >
               <MenuItem value="All">All</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>
+              <MenuItem value="reschedule">Reschedule</MenuItem>
               <MenuItem value="process">Process</MenuItem>
               <MenuItem value="done">Done</MenuItem>
               <MenuItem value="cancel">Cancel</MenuItem>
@@ -208,7 +222,7 @@ function History() {
               <TableCell onClick={() => handleSort("end_date")}>
                 End Date
               </TableCell>
-              <TableCell onClick={() => handleSort("pax")}>Pax</TableCell>
+              <TableCell>Pax</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Note</TableCell>
               <TableCell>Actions</TableCell>
@@ -229,6 +243,8 @@ function History() {
                       color:
                         event.status === "pending"
                           ? "orange"
+                          : event.status === "reschedule"
+                          ? "yellow"
                           : event.status === "process"
                           ? "blue"
                           : event.status === "done"
@@ -241,38 +257,34 @@ function History() {
                 </TableCell>
                 <TableCell>{event.note}</TableCell>
                 <TableCell>
-                  <Button
-                    className="ms-2"
+                  {/* Detail button accessible by all */}
+                  <IconButton
+                    color="primary"
                     onClick={() => navigate(`/events/${event._id}`)}
-                    variant="contained"
-                    size="small"
                   >
-                    Detail
-                  </Button>
-                  {["it", "admin"].includes(currentUser?.role) && (
+                    <VisibilityIcon />
+                  </IconButton>
+
+                  {/* Role-specific buttons for "admin" and "it" */}
+                  {["admin", "it"].includes(currentUser?.role) && (
                     <>
-                      <Button
+                      <IconButton
+                        color="secondary"
                         onClick={() => navigate(`/events/edit/${event._id}`)}
-                        variant="outlined"
-                        size="small"
-                        style={{ marginLeft: 8 }}
                       >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setEventToDelete(event); // Set the event to delete
-                          setShowDeleteConfirm(true); // Show confirmation alert
-                        }}
-                        variant="outlined"
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
                         color="error"
-                        size="small"
-                        style={{ marginLeft: 8 }}
+                        onClick={() => {
+                          setEventToDelete(event); // Set event to delete
+                          setShowDeleteConfirm(true); // Show delete confirmation
+                        }}
                       >
-                        Delete
-                      </Button>
-                      <Button
-                        className="mt-2"
+                        <DeleteIcon />
+                      </IconButton>
+                      <IconButton
+                        color="warning"
                         onClick={() => {
                           setStatusUpdate({
                             id: event._id,
@@ -281,12 +293,9 @@ function History() {
                           });
                           setShowUpdateForm(true);
                         }}
-                        variant="outlined"
-                        size="small"
-                        style={{ marginLeft: 8 }}
                       >
-                        Update Status
-                      </Button>
+                        <UpdateIcon />
+                      </IconButton>
                     </>
                   )}
                 </TableCell>
@@ -296,6 +305,7 @@ function History() {
         </Table>
       </TableContainer>
 
+      {/* Update Status Form */}
       {showUpdateForm && (
         <Grow in={showUpdateForm}>
           <Box mt={3} p={3} boxShadow={3} bgcolor="background.paper">
@@ -314,6 +324,7 @@ function History() {
                 >
                   <MenuItem value="pending">Pending</MenuItem>
                   <MenuItem value="process">Process</MenuItem>
+                  <MenuItem value="reschedule">Reschedule</MenuItem>
                   <MenuItem value="done">Done</MenuItem>
                   <MenuItem value="cancel">Cancel</MenuItem>
                 </Select>
@@ -353,11 +364,10 @@ function History() {
       )}
 
       <Pagination
-        className="text-center"
         count={Math.ceil(searchedEvents.length / eventsPerPage)}
         page={currentPage}
         onChange={handlePageChange}
-        style={{ marginTop: 16 }}
+        sx={{ mt: 3, display: "flex", justifyContent: "center" }}
       />
 
       {/* Delete confirmation alert */}
@@ -371,17 +381,32 @@ function History() {
         cancelText="Cancel"
       />
 
-      {/* Delete success alert */}
-      <CustomAlert
+      {/* Snackbar for delete success */}
+      <Snackbar
         open={showDeleteSuccess}
+        autoHideDuration={3000}
         onClose={() => setShowDeleteSuccess(false)}
-        title="Event Deleted"
-        message="The event has been successfully deleted."
-        onConfirm={() => setShowDeleteSuccess(false)}
-        confirmText="OK"
-      />
+      >
+        <Alert onClose={() => setShowDeleteSuccess(false)} severity="success">
+          Event successfully deleted.
+        </Alert>
+      </Snackbar>
+
+      {/* Snackbar for update status success */}
+      <Snackbar
+        open={showUpdateStatusSuccess}
+        autoHideDuration={3000}
+        onClose={() => setShowUpdateStatusSuccess(false)}
+      >
+        <Alert
+          onClose={() => setShowUpdateStatusSuccess(false)}
+          severity="success"
+        >
+          Event status updated.
+        </Alert>
+      </Snackbar>
     </Box>
   );
-}
+};
 
 export default History;

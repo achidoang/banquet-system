@@ -13,7 +13,8 @@ import {
 function AddUser() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("user");
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
 
   const handleAddUser = async (e) => {
@@ -22,7 +23,7 @@ function AddUser() {
       const token = localStorage.getItem("token");
       await axios.post(
         "http://localhost:5000/api/users",
-        { username, password, role },
+        { username, password, role, email },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert("User added successfully");
@@ -54,6 +55,16 @@ function AddUser() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            required
+          />
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Email"
+            type="email"
+            value={email} // Email input
+            onChange={(e) => setEmail(e.target.value)}
             fullWidth
             required
           />

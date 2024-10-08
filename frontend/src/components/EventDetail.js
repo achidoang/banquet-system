@@ -319,37 +319,16 @@ function EventDetail() {
                 {/* Menampilkan gambar */}
                 {jobdesk.image_urls && jobdesk.image_urls.length > 0 && (
                   <div className="jobdesk-images">
-                    <Typography variant="body1">
-                      <strong>Images:</strong>
-                    </Typography>
                     {jobdesk.image_urls.map((imageUrl, idx) => (
                       <img
+                        className="mt-2 mb-5"
                         key={idx}
-                        src={`http://localhost:5000${imageUrl}`} // Gunakan imageUrl langsung tanpa split
+                        src={`http://localhost:5000${imageUrl}`} // Menggunakan imageUrl langsung
                         alt={`jobdesk-image-${idx}`}
-                        style={{ maxWidth: "200px", marginRight: "10px" }}
                       />
                     ))}
                   </div>
                 )}
-                {/* 
-                {jobdesk.image_urls && jobdesk.image_urls.length > 0 && (
-                  <div className="jobdesk-images">
-                    <Typography variant="body1">
-                      <strong>Images:</strong>
-                    </Typography>
-                    {jobdesk.image_urls.map((imageUrl, idx) => (
-                      <img
-                        key={idx}
-                        src={`http://localhost:5000/uploads/${imageUrl
-                          .split("\\")
-                          .pop()}`}
-                        alt={`jobdesk-image-${idx}`}
-                        style={{ maxWidth: "200px", marginRight: "10px" }}
-                      />
-                    ))}
-                  </div>
-                )} */}
 
                 <hr />
               </Grid>

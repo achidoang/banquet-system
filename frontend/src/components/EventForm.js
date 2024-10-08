@@ -256,12 +256,23 @@ function EventForm() {
     });
 
     try {
+      // Save the event to the database
       await axios.post("http://localhost:5000/api/events", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
+      // // Kirim email setelah event berhasil disimpan
+      // await axios.post(
+      //   "http://localhost:5000/api/email/send-emails",
+      //   {},
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   }
+      // );
       alert("Event created successfully");
       navigate("/history");
     } catch (error) {

@@ -14,6 +14,7 @@ import {
 function EditUser() {
   const { id } = useParams();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(true);
@@ -31,6 +32,7 @@ function EditUser() {
         );
         const user = response.data;
         setUsername(user.username);
+        setEmail(user.email);
         setRole(user.role);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -46,7 +48,7 @@ function EditUser() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const updatedData = { username, role };
+      const updatedData = { username, email, role };
       if (password) updatedData.password = password;
 
       await axios.put(`http://localhost:5000/api/users/${id}`, updatedData, {
@@ -100,6 +102,16 @@ function EditUser() {
         </Box>
         <Box sx={{ mb: 3 }}>
           <TextField
+            label="Email"
+            type="email"
+            value={email} // Email input
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            required
+          />
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <TextField
             select
             label="Role"
             value={role}
@@ -108,6 +120,7 @@ function EditUser() {
           >
             <MenuItem value="admin">Admin</MenuItem>
             <MenuItem value="it">IT</MenuItem>
+            <MenuItem value="user">User</MenuItem>
           </TextField>
         </Box>
         <Button type="submit" variant="contained" color="primary">

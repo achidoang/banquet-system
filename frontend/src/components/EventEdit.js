@@ -507,6 +507,7 @@ function EventEdit() {
                       required
                     />
                   </Grid>
+
                   <Grid item xs={12}>
                     <Button
                       variant="outlined"

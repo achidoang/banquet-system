@@ -21,6 +21,21 @@
   width: 50%;
 }
 
+.jobdesk-images {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Jarak antara gambar */
+  margin-top: 10px;
+}
+
+.jobdesk-images img {
+  width: 100%; /* Gambar akan memenuhi lebar container */
+  max-width: 100%; /* Maksimal 100% dari container */
+  height: auto; /* Tinggi menyesuaikan proporsi */
+  object-fit: cover; /* Menjaga rasio proporsi gambar */
+  border-radius: 8px; /* Memberikan sudut yang sedikit melengkung */
+}
+
 @media print {
   .column-small {
     width: 20%;

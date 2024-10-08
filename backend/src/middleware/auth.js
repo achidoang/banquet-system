@@ -1,24 +1,46 @@
 // src/middleware/auth.js
+// const jwt = require("jsonwebtoken");
+
+// // Middleware to verify token
+// exports.verifyToken = (req, res, next) => {
+//   const token = req.header("Authorization");
+//   console.log("Token Received:", token);
+
+//   if (!token) {
+//     return res.status(401).json({ message: "No token, authorization denied" });
+//   }
+
+//   try {
+//     const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET); // Memisahkan "Bearer" dari token
+//     req.user = decoded;
+//     console.log("Token Decoded:", decoded);
+//     next();
+//   } catch (err) {
+//     console.error("Token Invalid:", err);
+//     return res.status(400).json({ message: "Invalid token" });
+//   }
+// };
+
 const jwt = require("jsonwebtoken");
 
-// Middleware to verify token
 exports.verifyToken = (req, res, next) => {
-  const token = req.header("Authorization");
-  console.log("Token Received:", token);
+  const token = req.header("Authorization").replace("Bearer ", "");
 
   if (!token) {
-    return res.status(401).json({ message: "No token, authorization denied" });
+    return res.status(401).json({ message: "No token provided" });
   }
 
-  try {
-    const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET); // Memisahkan "Bearer" dari token
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).json({ message: "Token expired" }); // Pesan spesifik jika token expired
+      }
+      return res.status(403).json({ message: "Invalid token" });
+    }
+
     req.user = decoded;
-    console.log("Token Decoded:", decoded);
     next();
-  } catch (err) {
-    console.error("Token Invalid:", err);
-    return res.status(400).json({ message: "Invalid token" });
-  }
+  });
 };
 
 // Middleware to check IT role

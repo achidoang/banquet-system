@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Container, TextField, Button, Typography, Box } from "@mui/material";
 
 function Login() {
@@ -64,6 +64,13 @@ function Login() {
               Log In
             </Button>
           </form>
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <Link to="/forgot-password" style={{ textDecoration: "none" }}>
+              <Typography variant="body2" color="primary">
+                Forgot Password?
+              </Typography>
+            </Link>
+          </Box>
         </Box>
       </Box>
     </Container>

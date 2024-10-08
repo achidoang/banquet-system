@@ -1,6 +1,8 @@
 // src/controllers/EventController.js
 const Event = require("../models/Event");
 const { processImage } = require("../middleware/uploadImage");
+const fs = require("fs");
+const path = require("path");
 
 // Create Event
 exports.createEvent = async (req, res) => {
@@ -113,17 +115,54 @@ exports.updateEvent = async (req, res) => {
   }
 };
 
+// // Delete Event
+// exports.deleteEvent = async (req, res) => {
+//   try {
+//     const deletedEvent = await Event.findByIdAndDelete(req.params.id);
+//     if (!deletedEvent)
+//       return res.status(404).json({ message: "Event not found" });
+//     res.status(200).json({ message: "Event deleted successfully" });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: "Failed to delete event", error: error.message });
+//   }
+// };
+
 // Delete Event
 exports.deleteEvent = async (req, res) => {
   try {
-    const deletedEvent = await Event.findByIdAndDelete(req.params.id);
-    if (!deletedEvent)
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
       return res.status(404).json({ message: "Event not found" });
-    res.status(200).json({ message: "Event deleted successfully" });
+    }
+
+    // Get image URLs from event
+    const imageUrls = event.jobdesks.flatMap((jobdesk) => jobdesk.image_urls);
+
+    // Remove images from the filesystem
+    imageUrls.forEach((imageUrl) => {
+      const fullPath = path.join(__dirname, "..", imageUrl); // Resolve the full path to the image
+
+      // Check if the file exists and then delete
+      fs.unlink(fullPath, (err) => {
+        if (err) {
+          // Log error if file is not found, but continue the deletion process
+          console.error(`Failed to delete image at ${fullPath}:`, err.message);
+        }
+      });
+    });
+
+    // After deleting images, delete the event from the database
+    await Event.findByIdAndDelete(req.params.id);
+
+    return res
+      .status(200)
+      .json({ message: "Event and related images deleted successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to delete event", error: error.message });
+    console.error("Error deleting event:", error);
+    return res.status(500).json({ message: "Failed to delete event" });
   }
 };
 
@@ -145,5 +184,22 @@ exports.updateEventStatus = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error updating status", error: error.message });
+  }
+};
+
+// Delete Image
+exports.deleteImages = async (req, res) => {
+  const { imagesToDelete } = req.body;
+  try {
+    imagesToDelete.forEach((imageUrl) => {
+      const imagePath = path.join(__dirname, "..", imageUrl);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath); // Delete image from server
+      }
+    });
+    res.status(200).json({ message: "Images deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting images:", error);
+    res.status(500).json({ message: "Failed to delete images" });
   }
 };

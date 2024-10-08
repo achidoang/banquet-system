@@ -6,6 +6,8 @@ const authRoutes = require("./routes/auth");
 const path = require("path");
 const eventRoutes = require("./routes/event");
 const userRoutes = require("./routes/user");
+const emailRoutes = require("./routes/email");
+
 const cors = require("cors");
 const corsOptions = {
   origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
@@ -40,6 +42,7 @@ app.options("*", cors());
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes); // Add event routes
 app.use("/api/users", userRoutes);
+app.use("/api/email", emailRoutes);
 // app.use(cors()); // Enable CORS for all routes
 
 app.use((req, res, next) => {

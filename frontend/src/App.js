@@ -19,6 +19,8 @@ import EventDetail from "./components/EventDetail";
 import History from "./components/History";
 import ManageUsers from "./components/ManageUsers";
 import EventEdit from "./components/EventEdit";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 import axios from "axios";
 
 // Fungsi untuk memverifikasi token dan memastikan pengguna masih terotentikasi
@@ -69,13 +71,13 @@ function App() {
           path="/login"
           element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />}
         />
+
         <Route
           path="/register"
           element={
             isAuthenticated ? <Navigate to="/dashboard" /> : <Register />
           }
         />
-
         {/* Protected routes */}
         <Route
           path="/dashboard"
@@ -89,22 +91,15 @@ function App() {
           path="/events/create"
           element={isAuthenticated ? <EventForm /> : <Navigate to="/login" />}
         />
-        {/* <Route
-          path="/events/:id"
-          element={isAuthenticated ? <EventDetail /> : <Navigate to="/login" />}
-        /> */}
-
         <Route path="/events/:id" element={<EventDetail />} />
         <Route
           path="/events/edit/:id"
           element={isAuthenticated ? <EventEdit /> : <Navigate to="/login" />}
         />
-
         <Route
           path="/history"
           element={isAuthenticated ? <History /> : <Navigate to="/login" />}
         />
-
         <Route
           path="/add-user"
           element={isAuthenticated ? <AddUser /> : <Navigate to="/login" />}
@@ -113,9 +108,11 @@ function App() {
           path="/edit-user/:id"
           element={isAuthenticated ? <EditUser /> : <Navigate to="/login" />}
         />
-
         {/* Default route to dashboard */}
         <Route path="*" element={<Navigate to="/login" />} />
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Routes>
     </Router>
   );
