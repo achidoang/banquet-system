@@ -94,7 +94,7 @@ function Login() {
               />
             </Box>
             <Button type="submit" variant="contained" color="primary" fullWidth>
-              Log In
+              Sign In
             </Button>
           </form>
 

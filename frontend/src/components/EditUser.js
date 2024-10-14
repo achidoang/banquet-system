@@ -8,6 +8,7 @@ import {
   Typography,
   Box,
   CircularProgress,
+  MenuItem,
 } from "@mui/material";
 
 const EditUser = () => {
@@ -145,15 +146,21 @@ const EditUser = () => {
             // disabled={currentUser.id !== id} // Only the account owner can edit their password
           />
         )}
+
         {currentUser.role === "it" && (
           <TextField
             fullWidth
+            select
             label="Role"
             name="role"
             value={formData.role}
             onChange={handleInputChange}
             margin="normal"
-          />
+          >
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="it">IT</MenuItem>
+            <MenuItem value="user">User</MenuItem>
+          </TextField>
         )}
         <Button variant="contained" color="primary" type="submit">
           Update User

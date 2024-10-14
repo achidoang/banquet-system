@@ -5,6 +5,7 @@ import "react-quill/dist/quill.snow.css"; // Quill stylesheet
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../css/Form.css";
+import CustomAlert2 from "./CustomAlert2";
 import {
   TextField,
   Button,
@@ -19,8 +20,6 @@ import {
   Card,
   CardContent,
   CardActions,
-  Snackbar,
-  Alert,
 } from "@mui/material"; // Material UI Components
 import "bootstrap/dist/css/bootstrap.min.css"; // Bootstrap for layout
 import { formatDate } from "./utils"; // Util function
@@ -58,9 +57,13 @@ function EventForm() {
   ]);
 
   const [previewMode, setPreviewMode] = useState(false); // For preview mode
-  const [openSnackbar, setOpenSnackbar] = useState(false); // State untuk Snackbar
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Bisa 'success' atau 'error'
+
+  const [alert, setAlert] = useState({
+    open: false,
+    severity: "",
+    message: "",
+  });
+
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -193,17 +196,14 @@ function EventForm() {
     setPreviewMode(true); // Activate preview mode
   };
 
-  // Custom Alert Snackbar handler
-  const handleSnackbarClose = () => {
-    setOpenSnackbar(false);
-  };
-
   // Validasi Form
   const validateForm = () => {
     if (!refNo || !depositReceived || !bookingBy || !startDate || !endDate) {
-      setSnackbarMessage("Harap lengkapi semua field yang wajib diisi.");
-      setSnackbarSeverity("error");
-      setOpenSnackbar(true);
+      setAlert({
+        open: true,
+        severity: "error",
+        message: "Harap lengkapi semua field yang wajib diisi.",
+      });
       return false;
     }
     return true;
@@ -262,17 +262,23 @@ function EventForm() {
           Authorization: `Bearer ${token}`,
         },
       });
-      alert("Event created successfully");
-      // setSnackbarMessage("Event berhasil disimpan.");
-      // setSnackbarSeverity("success");
-      // setOpenSnackbar(true);
+      // alert("Event created successfully");
+      setAlert({
+        open: true,
+        severity: "success",
+        message: "Event created successfully",
+      });
+
       navigate("/history");
     } catch (error) {
       console.error("Error creating event:", error);
-      alert("Error creating event");
-      // setSnackbarMessage("Terjadi kesalahan saat menyimpan event.");
-      // setSnackbarSeverity("error");
-      // setOpenSnackbar(true);
+      // alert("Error creating event");
+      setAlert({
+        open: true,
+        severity: "error",
+        message: "Error creating event:",
+        error,
+      });
     }
   };
 
@@ -282,15 +288,6 @@ function EventForm() {
 
   return (
     <Container>
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
       <Typography className="text-center mt-4" variant="h4" gutterBottom>
         Create Event
       </Typography>
@@ -679,6 +676,13 @@ function EventForm() {
                 Save Event
               </Button>
             </Grid>
+            {/* Custom Alert */}
+            <CustomAlert2
+              open={alert.open}
+              onClose={() => setAlert({ ...alert, open: false })}
+              severity={alert.severity}
+              message={alert.message}
+            />
           </Grid>
         </form>
       ) : (

@@ -4,20 +4,33 @@ import axios from "axios";
 import {
   AppBar,
   Toolbar,
-  Button,
   Typography,
   Container,
   Grid,
-  Paper,
+  Card,
+  CardContent,
+  CardActions,
+  Button,
   Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Avatar,
   CircularProgress,
 } from "@mui/material";
-import { Logout, People, Event, History } from "@mui/icons-material";
+import {
+  Event,
+  History,
+  People,
+  Logout,
+  Dashboard as DashboardIcon,
+} from "@mui/icons-material";
 
 function Dashboard() {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +49,7 @@ function Dashboard() {
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false); // Stop loading after data is fetched
+        setLoading(false);
       }
     };
 
@@ -47,6 +60,14 @@ function Dashboard() {
     localStorage.removeItem("token");
     navigate("/login");
     window.location.reload();
+  };
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
 
   const parseJwt = (token) => {
@@ -74,85 +95,123 @@ function Dashboard() {
 
   return (
     <div>
-      <AppBar position="static">
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "#1976d2", boxShadow: 3 }}
+      >
         <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Dashboard
+          <Typography variant="h6" component="div" sx={{ flexGrow: 29 }}>
+            BEO Dashboard
           </Typography>
-          {currentUser && (
-            <Typography variant="body1" sx={{ mr: 2 }}>
-              {currentUser.users} ({currentUser.role})
-            </Typography>
-          )}
-          <Button color="inherit" onClick={handleLogout} startIcon={<Logout />}>
-            Logout
-          </Button>
+          <Typography variant="body1" component="div" sx={{ flexGrow: 1 }}>
+            ({currentUser?.role})
+          </Typography>
+          <IconButton color="inherit" onClick={handleMenuOpen}>
+            <Avatar sx={{ bgcolor: "#388e3c" }}>
+              {currentUser?.users?.charAt(0).toUpperCase() || "U"}
+            </Avatar>
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
-      <Container sx={{ mt: 4 }}>
-        <Grid container spacing={3}>
-          {/* Manage Users Button (for IT role) */}
-          {currentUser?.role === "it" && (
-            <>
-              <Grid item xs={12} sm={6} md={4}>
-                <Paper elevation={3} sx={{ p: 2 }}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<Event />}
-                    onClick={() => navigate("/events/create")}
-                  >
-                    Create Event
-                  </Button>
-                </Paper>
-              </Grid>
-            </>
-          )}
-
-          {/* Admin role sees Form and History */}
-          {currentUser?.role === "admin" && (
-            <>
-              <Grid item xs={12} sm={6} md={4}>
-                <Paper elevation={3} sx={{ p: 2 }}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<Event />}
-                    onClick={() => navigate("/events/create")}
-                  >
-                    Create Event
-                  </Button>
-                </Paper>
-              </Grid>
-            </>
-          )}
-
-          {/* View Manage user & Events (History) */}
-
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Grid container spacing={4}>
           <Grid item xs={12} sm={6} md={4}>
-            <Paper elevation={3} sx={{ p: 2 }}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<History />}
-                onClick={() => navigate("/history")}
-              >
-                View Events (History)
-              </Button>
-            </Paper>
+            <Card sx={{ boxShadow: 3 }}>
+              <CardContent>
+                <Box display="flex" justifyContent="center" alignItems="center">
+                  <Event fontSize="large" sx={{ color: "#1976d2" }} />
+                </Box>
+                <Typography variant="h6" align="center" gutterBottom>
+                  Create Event
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  align="center"
+                >
+                  Create new Banquet Event and manage them efficiently.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  sx={{ backgroundColor: "#1976d2" }}
+                  onClick={() => navigate("/events/create")}
+                >
+                  Go to Create Event
+                </Button>
+              </CardActions>
+            </Card>
           </Grid>
+
           <Grid item xs={12} sm={6} md={4}>
-            <Paper elevation={3} sx={{ p: 2 }}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<People />}
-                onClick={() => navigate("/manage-users")}
-              >
-                Manage Users
-              </Button>
-            </Paper>
+            <Card sx={{ boxShadow: 3 }}>
+              <CardContent>
+                <Box display="flex" justifyContent="center" alignItems="center">
+                  <History fontSize="large" sx={{ color: "#388e3c" }} />
+                </Box>
+                <Typography variant="h6" align="center" gutterBottom>
+                  View Event History
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  align="center"
+                >
+                  Check past events and monitor activities that have been
+                  completed.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  sx={{ backgroundColor: "#388e3c" }}
+                  onClick={() => navigate("/history")}
+                >
+                  View History
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+            <Card sx={{ boxShadow: 3 }}>
+              <CardContent>
+                <Box display="flex" justifyContent="center" alignItems="center">
+                  <People fontSize="large" sx={{ color: "#f57c00" }} />
+                </Box>
+                <Typography variant="h6" align="center" gutterBottom>
+                  Manage Users
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  align="center"
+                >
+                  Add, edit, or remove users and manage access control.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  sx={{ backgroundColor: "#f57c00" }}
+                  onClick={() => navigate("/manage-users")}
+                >
+                  Manage Users
+                </Button>
+              </CardActions>
+            </Card>
           </Grid>
         </Grid>
       </Container>

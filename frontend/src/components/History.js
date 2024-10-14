@@ -46,7 +46,7 @@ const parseJwt = (token) => {
 const History = () => {
   const [events, setEvents] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [eventsPerPage] = useState(7);
+  const [eventsPerPage] = useState(15);
   const [sortKey, setSortKey] = useState("start_date");
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -170,12 +170,12 @@ const History = () => {
       {/* Header with Card */}
       <Card elevation={3} sx={{ mb: 2 }}>
         <CardContent>
-          <Typography variant="h4" gutterBottom>
-            History
+          <Typography variant="h4" className="text-center mt-2" gutterBottom>
+            Daftar Event
           </Typography>
-          <Typography variant="body1" color="textSecondary">
+          {/* <Typography variant="body1" color="textSecondary">
             Daftar event
-          </Typography>
+          </Typography> */}
         </CardContent>
       </Card>
 
@@ -306,69 +306,88 @@ const History = () => {
       </TableContainer>
 
       {/* Update Status Form */}
+      {/* Status Update Form */}
       {showUpdateForm && (
         <Grow in={showUpdateForm}>
-          <Box mt={3} p={3} boxShadow={3} bgcolor="background.paper">
-            <Typography variant="h6" gutterBottom>
-              Update Status for Event
+          <Box
+            sx={{
+              mt: 4,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="h5" mb={2}>
+              Update Status Event
             </Typography>
             <form onSubmit={handleStatusUpdate}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={statusUpdate.status}
-                  onChange={(e) =>
-                    setStatusUpdate({ ...statusUpdate, status: e.target.value })
-                  }
-                  required
-                >
-                  <MenuItem value="pending">Pending</MenuItem>
-                  <MenuItem value="process">Process</MenuItem>
-                  <MenuItem value="reschedule">Reschedule</MenuItem>
-                  <MenuItem value="done">Done</MenuItem>
-                  <MenuItem value="cancel">Cancel</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField
-                label="Note"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                multiline
-                rows={4}
-                value={statusUpdate.note}
-                onChange={(e) =>
-                  setStatusUpdate({ ...statusUpdate, note: e.target.value })
-                }
-              />
-              <Box mt={2}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  type="submit"
-                  style={{ marginRight: "10px" }}
-                >
-                  Submit
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => setShowUpdateForm(false)}
-                >
-                  Cancel
-                </Button>
-              </Box>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      value={statusUpdate.status}
+                      onChange={(e) =>
+                        setStatusUpdate({
+                          ...statusUpdate,
+                          status: e.target.value,
+                        })
+                      }
+                      label="Status"
+                    >
+                      <MenuItem value="pending">Pending</MenuItem>
+                      <MenuItem value="reschedule">Reschedule</MenuItem>
+                      <MenuItem value="process">Process</MenuItem>
+                      <MenuItem value="done">Done</MenuItem>
+                      <MenuItem value="cancel">Cancel</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Note"
+                    variant="outlined"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={statusUpdate.note}
+                    onChange={(e) =>
+                      setStatusUpdate({ ...statusUpdate, note: e.target.value })
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12} display="flex" justifyContent="center">
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    sx={{ mr: 2 }}
+                  >
+                    Update Status
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => setShowUpdateForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </Grid>
+              </Grid>
             </form>
           </Box>
         </Grow>
       )}
 
-      <Pagination
-        count={Math.ceil(searchedEvents.length / eventsPerPage)}
-        page={currentPage}
-        onChange={handlePageChange}
-        sx={{ mt: 3, display: "flex", justifyContent: "center" }}
-      />
+      <Box mt={2} display="flex" justifyContent="center">
+        <Pagination
+          count={Math.ceil(searchedEvents.length / eventsPerPage)}
+          page={currentPage}
+          onChange={handlePageChange}
+          variant="outlined"
+          shape="rounded"
+        />
+      </Box>
 
       {/* Delete confirmation alert */}
       <CustomAlert
