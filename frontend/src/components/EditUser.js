@@ -1,39 +1,48 @@
 import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
 import {
-  Container,
   TextField,
   Button,
-  Box,
+  Container,
   Typography,
-  MenuItem,
+  Box,
   CircularProgress,
 } from "@mui/material";
 
-function EditUser() {
-  const { id } = useParams();
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
+const EditUser = () => {
+  const { id } = useParams(); // Get user id from the URL
+  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null); // Current logged-in user
   const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "",
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchCurrentUser = async () => {
       try {
         const token = localStorage.getItem("token");
+        const decodedToken = parseJwt(token);
+        setCurrentUser(decodedToken);
+
         const response = await axios.get(
           `http://localhost:5000/api/users/${id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        const user = response.data;
-        setUsername(user.username);
-        setEmail(user.email);
-        setRole(user.role);
+        setUser(response.data);
+        setFormData({
+          username: response.data.username,
+          email: response.data.email,
+          role: response.data.role,
+          password: "",
+        });
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -41,24 +50,50 @@ function EditUser() {
       }
     };
 
-    fetchUser();
+    fetchCurrentUser();
   }, [id]);
 
-  const handleEditUser = async (e) => {
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const updatedData = { username, email, role };
-      if (password) updatedData.password = password;
 
-      await axios.put(`http://localhost:5000/api/users/${id}`, updatedData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Only allow user to update their own email/password if they're not IT or Admin
+      if (currentUser.role !== "it" && currentUser.id !== id) {
+        return alert("You can only update your own account details.");
+      }
+
+      await axios.put(
+        `http://localhost:5000/api/users/${id}`,
+        {
+          username: formData.username,
+          email: formData.email,
+          password: currentUser.id === id ? formData.password : undefined, // Only account owner can update password
+          role: currentUser.role === "it" ? formData.role : undefined, // Only IT can update role
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       alert("User updated successfully");
-      navigate("/dashboard");
+      navigate("/manage-users");
     } catch (error) {
       console.error("Error updating user:", error);
-      alert(error.response?.data?.message || "Error updating user");
+      alert("Error updating user");
+    }
+  };
+
+  const parseJwt = (token) => {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      return JSON.parse(window.atob(base64));
+    } catch (error) {
+      return null;
     }
   };
 
@@ -77,58 +112,55 @@ function EditUser() {
 
   return (
     <Container>
-      <Typography variant="h4" sx={{ mb: 4 }}>
+      <Typography variant="h4" gutterBottom>
         Edit User
       </Typography>
-      <form onSubmit={handleEditUser}>
-        <Box sx={{ mb: 3 }}>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          fullWidth
+          label="Username"
+          name="username"
+          value={formData.username}
+          onChange={handleInputChange}
+          disabled={currentUser.role !== "it"} // Only IT can edit username
+          margin="normal"
+        />
+        <TextField
+          fullWidth
+          label="Email"
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          margin="normal"
+        />
+        {currentUser.id === id && (
           <TextField
-            label="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
             fullWidth
-            required
-          />
-        </Box>
-        <Box sx={{ mb: 3 }}>
-          <TextField
             label="Password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-            placeholder="Leave blank to keep the same"
+            margin="normal"
+            // disabled={currentUser.id !== id} // Only the account owner can edit their password
           />
-        </Box>
-        <Box sx={{ mb: 3 }}>
+        )}
+        {currentUser.role === "it" && (
           <TextField
-            label="Email"
-            type="email"
-            value={email} // Email input
-            onChange={(e) => setEmail(e.target.value)}
             fullWidth
-            required
-          />
-        </Box>
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            select
             label="Role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            fullWidth
-          >
-            <MenuItem value="admin">Admin</MenuItem>
-            <MenuItem value="it">IT</MenuItem>
-            <MenuItem value="user">User</MenuItem>
-          </TextField>
-        </Box>
-        <Button type="submit" variant="contained" color="primary">
+            name="role"
+            value={formData.role}
+            onChange={handleInputChange}
+            margin="normal"
+          />
+        )}
+        <Button variant="contained" color="primary" type="submit">
           Update User
         </Button>
       </form>
     </Container>
   );
-}
+};
 
 export default EditUser;

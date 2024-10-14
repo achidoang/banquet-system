@@ -6,8 +6,13 @@ const sendEmail = require("../utils/SendEmail.js");
 
 // Register a new user
 exports.register = async (req, res) => {
-  const { username, password, role } = req.body;
-  console.log("Registration request received:", { username, password, role }); // Logging input data
+  const { username, password, role, email } = req.body;
+  console.log("Registration request received:", {
+    username,
+    password,
+    role,
+    email,
+  }); // Logging input data
 
   try {
     // Check if user already exists
@@ -20,7 +25,12 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create new user
-    const newUser = new User({ username, password: hashedPassword, role });
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      role,
+      email,
+    });
     await newUser.save();
 
     console.log("User registered successfully:", newUser); // Logging success
@@ -66,11 +76,18 @@ exports.login = async (req, res) => {
   }
 };
 
-// Get all users
+// Get all users (IT) or only own account for other roles
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    if (req.user.role === "it") {
+      // If the user is IT, return all users
+      const users = await User.find();
+      return res.status(200).json(users);
+    } else {
+      // If not IT, return only the current user's data
+      const user = await User.findById(req.user.id);
+      return res.status(200).json([user]); // Return as an array for consistency
+    }
   } catch (error) {
     res.status(500).json({ message: "Error retrieving users", error });
   }
@@ -79,6 +96,13 @@ exports.getAllUsers = async (req, res) => {
 // Get user by ID
 exports.getUserById = async (req, res) => {
   try {
+    // Jika bukan IT, pastikan pengguna hanya bisa mengakses datanya sendiri
+    if (req.user.role !== "it" && req.user.id !== req.params.id) {
+      return res
+        .status(403)
+        .json({ message: "Access forbidden: Cannot access other users' data" });
+    }
+
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json(user);
@@ -115,6 +139,13 @@ exports.createUser = async (req, res) => {
 // Update user by ID with password hashing
 exports.updateUser = async (req, res) => {
   try {
+    // Jika bukan IT, pastikan hanya bisa mengupdate akun sendiri
+    if (req.user.role !== "it" && req.user.id !== req.params.id) {
+      return res
+        .status(403)
+        .json({ message: "Access forbidden: Cannot update other users' data" });
+    }
+
     const { password, ...otherUpdates } = req.body;
     const user = await User.findById(req.params.id);
 

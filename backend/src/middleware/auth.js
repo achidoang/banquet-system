@@ -1,27 +1,7 @@
 // src/middleware/auth.js
-// const jwt = require("jsonwebtoken");
-
-// // Middleware to verify token
-// exports.verifyToken = (req, res, next) => {
-//   const token = req.header("Authorization");
-//   console.log("Token Received:", token);
-
-//   if (!token) {
-//     return res.status(401).json({ message: "No token, authorization denied" });
-//   }
-
-//   try {
-//     const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET); // Memisahkan "Bearer" dari token
-//     req.user = decoded;
-//     console.log("Token Decoded:", decoded);
-//     next();
-//   } catch (err) {
-//     console.error("Token Invalid:", err);
-//     return res.status(400).json({ message: "Invalid token" });
-//   }
-// };
-
 const jwt = require("jsonwebtoken");
+
+// Middleware to verify token
 
 exports.verifyToken = (req, res, next) => {
   const token = req.header("Authorization").replace("Bearer ", "");
@@ -69,4 +49,17 @@ exports.authorizeRole = function authorizeRole(roles) {
     }
     next();
   };
+};
+
+// Get current user profile
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving user", error });
+  }
 };

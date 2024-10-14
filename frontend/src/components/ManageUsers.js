@@ -20,12 +20,16 @@ import { Add, Edit, Delete } from "@mui/icons-material";
 
 function ManageUsers() {
   const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null); // State to store the current logged-in user
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
       const token = localStorage.getItem("token");
       try {
+        const decodedToken = parseJwt(token);
+        setCurrentUser(decodedToken); // Set the current user information
+
         const response = await axios.get("http://localhost:5000/api/users", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -39,6 +43,16 @@ function ManageUsers() {
 
     fetchUsers();
   }, []);
+
+  const parseJwt = (token) => {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      return JSON.parse(window.atob(base64));
+    } catch (error) {
+      return null;
+    }
+  };
 
   const handleDeleteUser = async (id) => {
     try {
@@ -75,14 +89,16 @@ function ManageUsers() {
         sx={{ mb: 3 }}
       >
         <Typography variant="h4">Manage Users</Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          component={Link}
-          to="/add-user"
-        >
-          Add New User
-        </Button>
+        {currentUser?.role === "it" && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            component={Link}
+            to="/add-user"
+          >
+            Add New User
+          </Button>
+        )}
       </Grid>
 
       <TableContainer component={Paper}>

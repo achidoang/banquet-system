@@ -19,8 +19,7 @@ import EventDetail from "./components/EventDetail";
 import History from "./components/History";
 import ManageUsers from "./components/ManageUsers";
 import EventEdit from "./components/EventEdit";
-import ForgotPassword from "./components/ForgotPassword";
-import ResetPassword from "./components/ResetPassword";
+
 import axios from "axios";
 
 // Fungsi untuk memverifikasi token dan memastikan pengguna masih terotentikasi
@@ -110,9 +109,6 @@ function App() {
         />
         {/* Default route to dashboard */}
         <Route path="*" element={<Navigate to="/login" />} />
-
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Routes>
     </Router>
   );

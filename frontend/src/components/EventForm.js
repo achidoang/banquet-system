@@ -19,6 +19,8 @@ import {
   Card,
   CardContent,
   CardActions,
+  Snackbar,
+  Alert,
 } from "@mui/material"; // Material UI Components
 import "bootstrap/dist/css/bootstrap.min.css"; // Bootstrap for layout
 import { formatDate } from "./utils"; // Util function
@@ -56,6 +58,9 @@ function EventForm() {
   ]);
 
   const [previewMode, setPreviewMode] = useState(false); // For preview mode
+  const [openSnackbar, setOpenSnackbar] = useState(false); // State untuk Snackbar
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Bisa 'success' atau 'error'
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -188,35 +193,29 @@ function EventForm() {
     setPreviewMode(true); // Activate preview mode
   };
 
+  // Custom Alert Snackbar handler
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  };
+
+  // Validasi Form
+  const validateForm = () => {
+    if (!refNo || !depositReceived || !bookingBy || !startDate || !endDate) {
+      setSnackbarMessage("Harap lengkapi semua field yang wajib diisi.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      return false;
+    }
+    return true;
+  };
+
   // Handle form submission
   const handleSaveToDatabase = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
+    if (!validateForm()) return;
 
-    // const eventData = {
-    //   // Add your event form fields here
-    //   ref_no: refNo,
-    //   deposit_received: depositReceived,
-    //   booking_by: bookingBy,
-    //   billing_address: billingAddress,
-    //   start_date: startDate,
-    //   end_date: endDate,
-    //   pax: pax,
-    //   venue: venue,
-    //   sales_in_charge: salesInCharge,
-    //   contact_person: contactPerson,
-    //   list_event: listEvent,
-    //   status: "pending", // Default status
-    //   note: note,
-    //   rundowns: rundowns,
-    //   jobdesks: JSON.stringify(
-    //     jobdesks.map((jobdesk) => ({
-    //       ...jobdesk,
-    //       image_urls: undefined, // Remove the preview URLs
-    //     }))
-    //   ),
-    // };
+    const formData = new FormData();
 
     // Tambahkan semua field event ke FormData satu per satu
     formData.append("ref_no", refNo);
@@ -263,21 +262,17 @@ function EventForm() {
           Authorization: `Bearer ${token}`,
         },
       });
-      // // Kirim email setelah event berhasil disimpan
-      // await axios.post(
-      //   "http://localhost:5000/api/email/send-emails",
-      //   {},
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   }
-      // );
       alert("Event created successfully");
+      // setSnackbarMessage("Event berhasil disimpan.");
+      // setSnackbarSeverity("success");
+      // setOpenSnackbar(true);
       navigate("/history");
     } catch (error) {
       console.error("Error creating event:", error);
       alert("Error creating event");
+      // setSnackbarMessage("Terjadi kesalahan saat menyimpan event.");
+      // setSnackbarSeverity("error");
+      // setOpenSnackbar(true);
     }
   };
 
@@ -287,6 +282,15 @@ function EventForm() {
 
   return (
     <Container>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       <Typography className="text-center mt-4" variant="h4" gutterBottom>
         Create Event
       </Typography>
@@ -685,70 +689,72 @@ function EventForm() {
           </Typography>
           <Card>
             <CardContent>
-              <Typography variant="h6">Ref No:</Typography>
-              <Typography>{refNo}</Typography>
+              <Typography variant="h6">Event Preview</Typography>
+              <Typography>Ref No: {refNo}</Typography>
+              <Typography>Billing Address: {billingAddress}</Typography>
+              <Typography>Sales in Charge: {salesInCharge}</Typography>
+              <Typography>Start Date: {formatDate(startDate)}</Typography>{" "}
+              <Typography>End Date: {formatDate(endDate)}</Typography>{" "}
+              {/* Menampilkan tanggal event */}
+              <Typography>Deposit Received: {depositReceived}</Typography>
+              <Typography>Booking By: {bookingBy}</Typography>
+              <Typography>Venue: {venue}</Typography>
+              <Typography>Pax: {pax}</Typography>
+              <Typography>Contact Person: {contactPerson}</Typography>
+              <Typography>Event: {listEvent}</Typography>
+              {/* Rundown Preview */}
+              <Typography variant="h6">Rundowns</Typography>
+              {rundowns.map((rundown, index) => (
+                <Box key={index}>
+                  <Typography>
+                    {formatDate(rundown.date)} {rundown.time_start} -{" "}
+                    {rundown.time_end}: {rundown.event_activity} (
+                    {rundown.venue_rundown})
+                  </Typography>
+                </Box>
+              ))}
+              {/* Jobdesk Preview */}
+              <Typography variant="h6">Jobdesks</Typography>
+              {jobdesks.map((jobdesk, index) => (
+                <Box key={index}>
+                  <Typography>Department: {jobdesk.department_name}</Typography>
+                  <Typography>PIC: {jobdesk.people_in_charge}</Typography>
+                  <Typography>Notes: {jobdesk.notes}</Typography>
+                  <Typography>Description: {jobdesk.description}</Typography>
 
-              <Typography variant="h6">Booking By:</Typography>
-              <Typography>{bookingBy}</Typography>
-
-              <Typography variant="h6">Venue:</Typography>
-              <Typography>{venue}</Typography>
-
-              <Typography variant="h6">Deposit Reveived:</Typography>
-              <Typography>{depositReceived}</Typography>
-
-              <Typography variant="h6">Start Date:</Typography>
-              <Typography>{formatDate(startDate)}</Typography>
-
-              <Typography variant="h6">End Date:</Typography>
-              <Typography>{formatDate(endDate)}</Typography>
-
-              <Typography variant="h6">Pax:</Typography>
-              <Typography>{pax}</Typography>
-
-              <Typography variant="h6">Sales in Charge:</Typography>
-              <Typography>{salesInCharge}</Typography>
-
-              <Typography variant="h6">Contact Person:</Typography>
-              <Typography>{contactPerson}</Typography>
-
-              <Typography variant="h6">List Event:</Typography>
-              <Typography>{listEvent}</Typography>
-
-              <Typography variant="h6">Sales in Charge:</Typography>
-              <Typography>{salesInCharge}</Typography>
-
-              <Typography variant="h6">Rundowns:</Typography>
-              <ul>
-                {rundowns.map((rundown, index) => (
-                  <li key={index}>
-                    {formatDate(rundown.rundown_date)} || {rundown.time_start} -{" "}
-                    {rundown.time_end} || {rundown.venue_rundown} ||{" "}
-                    {rundown.event_activity}
-                  </li>
-                ))}
-              </ul>
-
-              <Typography variant="h6">Jobdesks:</Typography>
-              <ul>
-                {jobdesks.map((jobdesk, index) => (
-                  <li key={index}>
-                    {jobdesk.department_name}:{" "}
-                    {
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: jobdesk.description,
-                        }}
-                      ></div>
-                    }
-                    Notes: {jobdesk.notes} || People in Charge:{" "}
-                    {jobdesk.people_in_charge}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Tambahkan semua data form lainnya di sini */}
+                  {/* Preview gambar jobdesk */}
+                  <Box display="flex" flexWrap="wrap" gap={2}>
+                    {jobdesk.image_urls.map((image, imgIndex) => (
+                      <img
+                        key={imgIndex}
+                        src={image.url}
+                        alt={`Preview ${imgIndex}`}
+                        width={100}
+                        height={100}
+                        style={{ objectFit: "cover", borderRadius: "8px" }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              ))}
             </CardContent>
+
+            <CardActions>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSaveToDatabase}
+              >
+                Save
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => setPreviewMode(false)}
+              >
+                Edit
+              </Button>
+            </CardActions>
           </Card>
 
           <Button
