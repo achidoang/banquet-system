@@ -26,7 +26,7 @@ function Login() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://192.168.0.109:5000/api/auth/login",
+        "https://192.168.0.109:5000/api/auth/login",
         {
           username,
           password,

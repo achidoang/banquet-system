@@ -32,7 +32,7 @@ function ManageUsers() {
         setCurrentUser(decodedToken);
 
         const response = await axios.get(
-          "http://192.168.0.109:5000/api/users",
+          "https://192.168.0.109:5000/api/users",
           {
             headers: { Authorization: `Bearer ${token}` },
           }

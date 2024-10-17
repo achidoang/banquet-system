@@ -84,7 +84,7 @@ const History = () => {
   const handleConfirmDelete = async () => {
     try {
       await axios.delete(
-        `http://192.168.0.109:5000/api/events/${eventToDelete._id}`,
+        `https://192.168.0.109:5000/api/events/${eventToDelete._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -101,7 +101,7 @@ const History = () => {
     e.preventDefault();
     try {
       await axios.put(
-        `http://localhost:5000/api/events/${statusUpdate.id}/status`,
+        `https://192.168.0.109:5000/api/events/${statusUpdate.id}/status`,
         { status: statusUpdate.status, note: statusUpdate.note },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -109,7 +109,7 @@ const History = () => {
       );
       setShowUpdateForm(false);
       const eventResponse = await axios.get(
-        "http://localhost:5000/api/events",
+        "https://192.168.0.109:5000/api/events",
         {
           headers: { Authorization: `Bearer ${token}` },
         }

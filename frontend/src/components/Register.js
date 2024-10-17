@@ -13,7 +13,7 @@ function Register() {
     console.log("Attempting registration with:", { username, password, role }); // Logging input data
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
+        "https://192.168.0.109:5000/api/auth/register",
         {
           username,
           password,
