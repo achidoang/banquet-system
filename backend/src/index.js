@@ -7,10 +7,16 @@ const path = require("path");
 const eventRoutes = require("./routes/event");
 const userRoutes = require("./routes/user");
 const emailRoutes = require("./routes/email");
-
 const cors = require("cors");
+const https = require("https"); // Tambahkan ini
+const fs = require("fs"); // Tambahkan ini untuk membaca sertifikat SSL
+
 const corsOptions = {
-  origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+  origin: [
+    "http://localhost:3000",
+    "http://192.168.0.109:3000",
+    "https://banquet-system.vercel.app",
+  ], // Pisahkan dengan tanda koma
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -43,15 +49,20 @@ app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes); // Add event routes
 app.use("/api/users", userRoutes);
 app.use("/api/email", emailRoutes);
-// app.use(cors()); // Enable CORS for all routes
 
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);
   next();
 });
 
+// Sertifikat SSL
+const httpsOptions = {
+  key: fs.readFileSync("server.key"), // Kunci SSL
+  cert: fs.readFileSync("server.cert"), // Sertifikat SSL
+};
+
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+https.createServer(httpsOptions, app).listen(PORT, () => {
+  console.log(`Server running on https://localhost:${PORT}`);
 });

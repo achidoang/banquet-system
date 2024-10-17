@@ -32,7 +32,7 @@ const EditUser = () => {
         setCurrentUser(decodedToken);
 
         const response = await axios.get(
-          `http://localhost:5000/api/users/${id}`,
+          `https://192.168.0.109:5000/api/users/${id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

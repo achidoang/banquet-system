@@ -323,7 +323,7 @@ function EventDetail() {
                       <img
                         className="mt-2 mb-5"
                         key={idx}
-                        src={`http://localhost:5000${imageUrl}`} // Menggunakan imageUrl langsung
+                        src={`https://192.168.0.109:5000${imageUrl}`} // Menggunakan imageUrl langsung
                         alt={`jobdesk-image-${idx}`}
                       />
                     ))}

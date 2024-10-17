@@ -109,7 +109,7 @@ function EventEdit() {
     e.preventDefault();
     try {
       await axios.put(
-        `https://192.168.0.109t:5000/api/events/${id}`,
+        `https://192.168.0.109:5000/api/events/${id}`,
         eventData,
         {
           headers: { Authorization: `Bearer ${token}` },
