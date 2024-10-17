@@ -61,7 +61,7 @@ function ManageUsers() {
   const handleDeleteUser = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/users/${id}`, {
+      await axios.delete(`https://192.168.0.109:5000/api/users/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(users.filter((user) => user._id !== id));
