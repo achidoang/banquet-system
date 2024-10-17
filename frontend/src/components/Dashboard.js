@@ -41,9 +41,12 @@ function Dashboard() {
         setCurrentUser(decodedToken);
 
         if (decodedToken.role === "it") {
-          const response = await axios.get("http://localhost:5000/api/users", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await axios.get(
+            "http://192.168.0.109:5000/api/users",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           setUsers(response.data);
         }
       } catch (error) {

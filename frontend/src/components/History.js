@@ -84,7 +84,7 @@ const History = () => {
   const handleConfirmDelete = async () => {
     try {
       await axios.delete(
-        `http://localhost:5000/api/events/${eventToDelete._id}`,
+        `http://192.168.0.109:5000/api/events/${eventToDelete._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

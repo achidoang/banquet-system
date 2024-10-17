@@ -31,9 +31,12 @@ function ManageUsers() {
         const decodedToken = parseJwt(token);
         setCurrentUser(decodedToken);
 
-        const response = await axios.get("http://localhost:5000/api/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          "http://192.168.0.109:5000/api/users",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setUsers(response.data);
       } catch (error) {
         console.error("Error fetching users:", error);
