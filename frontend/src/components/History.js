@@ -69,9 +69,12 @@ const History = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/events", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          "https://192.168.0.109:5000/api/events",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setEvents(response.data);
       } catch (error) {
         console.error("Error fetching events:", error);

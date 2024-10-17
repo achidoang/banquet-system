@@ -53,7 +53,7 @@ function EventEdit() {
     const fetchEvent = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/events/${id}`,
+          `https://192.168.0.109:5000/api/events/${id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -108,9 +108,13 @@ function EventEdit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/events/${id}`, eventData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        `https://192.168.0.109t:5000/api/events/${id}`,
+        eventData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       alert("Event updated successfully");
       navigate("/history"); // Redirect to history after update
     } catch (error) {

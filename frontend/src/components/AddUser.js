@@ -22,7 +22,7 @@ function AddUser() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/users",
+        "https://192.168.0.109:5000/api/users",
         { username, password, role, email },
         { headers: { Authorization: `Bearer ${token}` } }
       );

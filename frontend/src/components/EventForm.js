@@ -256,7 +256,7 @@ function EventForm() {
 
     try {
       // Save the event to the database
-      await axios.post("http://localhost:5000/api/events", formData, {
+      await axios.post("https://192.168.0.109:5000/api/events", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
