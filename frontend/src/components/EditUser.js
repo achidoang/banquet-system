@@ -69,7 +69,7 @@ const EditUser = () => {
       }
 
       await axios.put(
-        `http://localhost:5000/api/users/${id}`,
+        `https://192.168.0.109:5000/api/users/${id}`,
         {
           username: formData.username,
           email: formData.email,
