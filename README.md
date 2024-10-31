@@ -42,7 +42,7 @@ A web-based application designed for event management, including user authentica
 - Local deployment with **Docker** (optional)
 
 ## Project Structure
-banquet-system/ ├── backend/ │ ├── controllers/ │ ├── models/ │ ├── routes/ │ ├── middleware/ │ └── app.js ├── frontend/ │ ├── components/ │ ├── pages/ │ └── App.js ├── .env ├── docker-compose.yml └── README.md
+
 
 
 ### Backend (Node.js)
